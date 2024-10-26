@@ -1,3 +1,5 @@
+// ------------------------- JAVA LIBRARY --------------------------
+import java.util.*;
 
 // ------------------------- MAIN ENGINE --------------------------
 public class _init_{
@@ -9,6 +11,7 @@ public class _init_{
     }
 };
 
+// ------------------------- MAIN SCREEN --------------------------
 class MenuPage {
     
     // class attribute
@@ -71,6 +74,7 @@ class MenuPage {
 }
 
 
+// ------------------------- ALL OBJECTS --------------------------
 // parent User
 class User{ 
 
@@ -150,4 +154,123 @@ class Seller extends User{
     public String toString(){
         return "Seller's Account : " + this.name + " | age : " + this.age + " | current balance (on-hold balance) : A$ " + this.currentBalance + " ( " + this.onHoldBalance + " ) | tax rate : " + TAX_RATE;
     }
+}
+
+// sellable item
+
+enum Category{
+    FOOD, BEVERAGE, HOMEWARE, ELECTRONIC, TOYS, FASHION, OFFICE, EVENT;
+}
+
+class Product{
+
+    // attributes
+    private double price;
+    String name, description;
+    private int stock;
+    final Category CATEGORY;
+
+    Product(String name, double price, Category category, int stock){
+        this.name = name;
+        this.price = price;
+        this.stock = stock;
+        this.CATEGORY = category;
+        this.description = "This is a default description";
+    }
+
+    public void updateName(String newName){
+        this.name = newName;
+    }
+
+    public void updatePrice(double newPrice){
+        this.price = newPrice;
+    }
+
+    public void updateDesc(String newDesc){
+        this.description = newDesc;
+    }
+
+    public void addStock(int addStock){
+        this.stock += stock;
+    }
+
+    public void reduceStock(int minStock){
+        this.stock -= minStock;
+    }
+
+    // getter
+    public int getStock(){
+        return this.stock;
+    }
+
+    public double getPrice(){
+        return this.price;
+    }
+}
+
+class Catalogue{
+
+    ArrayList<Product> itemList, displayedItems;
+
+    Catalogue(ArrayList<Product> itemList){
+        this.itemList = itemList;
+        this.displayedItems = new ArrayList<>();
+    }
+
+    void seperateDisplayByCategory(Category category){
+        for (Product a : this.itemList){
+            if (a.CATEGORY.equals(category)){
+                displayedItems.add(a);
+            }
+        }
+    };
+
+    void diplaySpecific(){
+        for (Product a : this.displayedItems){
+            System.out.println("ok");
+        }
+    }
+
+}
+
+class News{
+    String news, title, author;
+    // int date;
+
+    News(String author, String title, String news){
+        this.author = author;
+        this.title = title;
+        this.news = news;
+    }
+
+    public void printNews(){
+        System.out.println(this.title);
+        System.out.println("Written by " + this.author);
+        System.out.println(this.news);
+    }
+}
+
+class BroadCast{
+
+    ArrayList<News> announcement;
+
+    BroadCast(){
+        this.announcement = new ArrayList<>();
+    }
+
+    void addBroadcast(News newAnnouncement){
+        this.announcement.add(newAnnouncement);
+    }
+
+    void printAllBroadcast(){
+        System.out.println("Today's Broadcast ANNOUNCEMENT!!!");
+        System.out.println();
+        System.out.println();
+        for (int i=0; i < this.announcement.size(); i++){
+            System.out.print(1+i + " ");
+            this.announcement.get(i).printNews();
+            System.out.println();
+        }
+    }
+
 }
