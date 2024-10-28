@@ -38,6 +38,11 @@ class MenuPage {
     // methods list
 
     public void showTitleTemplate(){
+
+        for (int i = 0; i < 25; i++){
+            System.out.println();
+        }
+
         System.out.println(" /$$$$$$$                                               /$$            /$$$$$$ ");
         System.out.println("| $$__  $$                                             | $$           /$$__  $$");
         System.out.println("| $$  \\ $$ /$$$$$$   /$$$$$$  /$$  /$$$$$$   /$$$$$$$ /$$$$$$        | $$  \\ $$");
@@ -49,6 +54,8 @@ class MenuPage {
         System.out.println("                        /$$  | $$                                              ");
         System.out.println("                       |  $$$$$$/                                              ");
         System.out.println("                        \\______/                                               ");
+        System.out.println();
+        System.out.println();
         System.out.println();
     }
 
@@ -81,7 +88,7 @@ class MenuPage {
                     this.showMainScreen();
 
                 } catch (Exception e){
-                    System.out.println("Account registration failed, please restart the system");
+                    System.out.println("Session closed due to errors, please restart the system");
                     break;
                 }
             }
@@ -93,13 +100,8 @@ class MenuPage {
 
         while (this.engineStatus){
             //to make it look like cmd clear
-            for (int i = 0; i < 30; i++){
-                System.out.println();
-            }
 
             this.showTitleTemplate();
-            System.out.println();
-            System.out.println();
 
             System.out.println("Welcome dear user, " + this.currentGuest.name);
             System.out.println("How may I help you for today?");
@@ -113,8 +115,13 @@ class MenuPage {
                 System.out.println("[3] Onhold Deposit");
             }
             System.out.println("[4] Personal settings");
+            System.out.println("[5] Close the system");
             System.out.print("Answer: ");
             int option = In.nextInt();
+
+            if (option == 5){
+                this.engineStatus = false;
+            }
 
             this.checkUserInputMainScreen(option);
 
@@ -125,9 +132,56 @@ class MenuPage {
         if (option == 1){
             if (this.currentGuest instanceof Guest){
                 this.catalogue.diplayAllItems();
+                this.nextOptionForCatalogue();
             } else {
                 // pass
             }
+        }
+    }
+
+    public void nextOptionForCatalogue(){
+        System.out.println();
+        System.out.println("Do you need help with ?");
+        System.out.println();
+        System.out.println("[F] filter the list by category");
+        System.out.println("[S] filter by name order");
+        System.out.println("[E] return back to the previous page");
+        System.out.print("Answer: ");
+
+        String option = In.nextLine();
+
+        // if need sorting
+        if (option.equalsIgnoreCase("F")){
+            System.out.println();
+            this.showTitleTemplate();
+            System.out.println("Category List: ");
+            System.out.println("Food | Beverages | Homeware | Electronic | Toys | Fashion | Office | Event | Bathroom");
+            System.out.println();
+            System.out.print("Asnwer: ");
+            String category = In.nextLine();
+
+            if (category.equalsIgnoreCase("food")){
+                this.catalogue.seperateDisplayByCategory(Category.FOOD);
+            } else if (category.equalsIgnoreCase("beverages")){
+                this.catalogue.seperateDisplayByCategory(Category.BEVERAGE);
+            } else if (category.equalsIgnoreCase("homeware")){
+                this.catalogue.seperateDisplayByCategory(Category.HOMEWARE);
+            } else if (category.equalsIgnoreCase("electronic")){
+                this.catalogue.seperateDisplayByCategory(Category.ELECTRONIC);
+            } else if (category.equalsIgnoreCase("toys")){
+                this.catalogue.seperateDisplayByCategory(Category.TOYS);
+            } else if (category.equalsIgnoreCase("fashion")){
+                this.catalogue.seperateDisplayByCategory(Category.FASHION);
+            } else if (category.equalsIgnoreCase("office")){
+                this.catalogue.seperateDisplayByCategory(Category.OFFICE);
+            } else if (category.equalsIgnoreCase("event")){
+                this.catalogue.seperateDisplayByCategory(Category.EVENT);
+            } else if (category.equalsIgnoreCase("bathroom")){
+                this.catalogue.seperateDisplayByCategory(Category.BATHROOOM);
+            }
+
+        } else if (option.equalsIgnoreCase("S")){
+            this.catalogue.diplayAscendingOrder();
         }
     }
 }
@@ -266,6 +320,10 @@ class Product{
         return this.price;
     }
 
+    public String getName(){
+        return this.name;
+    }
+
     // string
     public String toString(){
         return "Item name: " + this.name + " | category: " + this.CATEGORY + " | price: A$" + this.getPrice() + " | current stock: " + this.getStock();
@@ -287,8 +345,6 @@ class Catalogue{
             System.out.println();
         }
 
-        System.out.print("The end of the list, please press [ENTER] to go back");
-        In.nextLine();
     }
 
     void seperateDisplayByCategory(Category category){
@@ -297,12 +353,31 @@ class Catalogue{
                 displayedItems.add(a);
             }
         }
+
+        for (Product a : this.displayedItems){
+            System.out.println(" (->) " + a);
+            System.out.println();
+        }
+
+        this.displayedItems.clear();
+
+        System.out.print("The end of the list, please press [ENTER] to go back");
+        In.nextLine();
     };
 
-    void diplaySpecific(){
-        for (Product a : this.displayedItems){
-            System.out.println("ok");
+    void diplayAscendingOrder(){
+
+        Comparator<Product> comparator = Comparator.comparing(Product::getName);
+
+        Collections.sort(this.itemList, comparator);
+
+        for (Product a : this.itemList){
+            System.out.println(" (->) " + a);
+            System.out.println();
         }
+
+        System.out.print("The end of the list, please press [ENTER] to go back");
+        In.nextLine();
     }
 
 }
