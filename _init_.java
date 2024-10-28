@@ -6,7 +6,7 @@ public class _init_{
     public static void main(String[] args) {
         
         MenuPage menu = new MenuPage();
-        menu.showMenu();
+        menu.showRegistration();
 
     }
 };
@@ -17,6 +17,7 @@ class MenuPage {
     // class attribute
     boolean engineStatus;
     int userOption;
+    Guest currentGuest;
 
     // public contructor
     public MenuPage(){
@@ -25,22 +26,26 @@ class MenuPage {
     }
 
     // methods list
-    public void showMenu(){
+
+    public void showTitleTemplate(){
+        System.out.println(" /$$$$$$$                                               /$$            /$$$$$$ ");
+        System.out.println("| $$__  $$                                             | $$           /$$__  $$");
+        System.out.println("| $$  \\ $$ /$$$$$$   /$$$$$$  /$$  /$$$$$$   /$$$$$$$ /$$$$$$        | $$  \\ $$");
+        System.out.println("| $$$$$$$//$$__  $$ /$$__  $$|__/ /$$__  $$ /$$_____/|_  $$_/        | $$$$$$$$");
+        System.out.println("| $$____/| $$  \\__/| $$  \\ $$ /$$| $$$$$$$$| $$        | $$          | $$__  $$");
+        System.out.println("| $$     | $$      | $$  | $$| $$| $$_____/| $$        | $$ /$$      | $$  | $$");
+        System.out.println("| $$     | $$      |  $$$$$$/| $$|  $$$$$$$|  $$$$$$$  |  $$$$/      | $$  | $$");
+        System.out.println("|__/     |__/       \\______/ | $$ \\_______/ \\_______/   \\___/        |__/  |__/");
+        System.out.println("                        /$$  | $$                                              ");
+        System.out.println("                       |  $$$$$$/                                              ");
+        System.out.println("                        \\______/                                               ");
+        System.out.println();
+    }
+
+    public void showRegistration(){
         while (this.engineStatus){
 
-            // printing the menu
-            System.out.println(" /$$$$$$$                                               /$$            /$$$$$$ ");
-            System.out.println("| $$__  $$                                             | $$           /$$__  $$");
-            System.out.println("| $$  \\ $$ /$$$$$$   /$$$$$$  /$$  /$$$$$$   /$$$$$$$ /$$$$$$        | $$  \\ $$");
-            System.out.println("| $$$$$$$//$$__  $$ /$$__  $$|__/ /$$__  $$ /$$_____/|_  $$_/        | $$$$$$$$");
-            System.out.println("| $$____/| $$  \\__/| $$  \\ $$ /$$| $$$$$$$$| $$        | $$          | $$__  $$");
-            System.out.println("| $$     | $$      | $$  | $$| $$| $$_____/| $$        | $$ /$$      | $$  | $$");
-            System.out.println("| $$     | $$      |  $$$$$$/| $$|  $$$$$$$|  $$$$$$$  |  $$$$/      | $$  | $$");
-            System.out.println("|__/     |__/       \\______/ | $$ \\_______/ \\_______/   \\___/        |__/  |__/");
-            System.out.println("                        /$$  | $$                                              ");
-            System.out.println("                       |  $$$$$$/                                              ");
-            System.out.println("                        \\______/                                               ");
-            System.out.println();
+            this.showTitleTemplate();
             
             // create the user (I think we can add an final admin account)
             System.out.println("ACCOUNT REGISTRATION");
@@ -61,8 +66,10 @@ class MenuPage {
                 try{
                     System.out.print("Input your password : ");
                     int password = In.nextInt();
-                    Guest currentGuest = new Guest(name, age, password);
+                    this.currentGuest = new Guest(name, age, password);
                     System.out.println("ok");
+                    this.showMainScreen();
+
                 } catch (Exception e){
                     System.out.println("Account registration failed, please restart the system");
                     break;
@@ -70,6 +77,30 @@ class MenuPage {
             }
             
         }
+    }
+
+    public void showMainScreen(){
+
+        while (this.engineStatus){
+            //to make it look like cmd clear
+            for (int i = 0; i < 30; i++){
+                System.out.println();
+            }
+
+            this.showTitleTemplate();
+            System.out.println();
+            System.out.println();
+
+            System.out.println("Welcome dear user, " + this.currentGuest.name);
+            System.out.println("How may I help you for today?");
+            System.out.println();
+            System.out.println("[1] Browse the catalogue");
+            System.out.println("[2] Check your cart");
+            System.out.println("[3] Update your balance");
+            System.out.println("[4] Personal settings");
+            System.out.print("Answer: ");
+            int option = In.nextInt();
+        } 
     }
 }
 
