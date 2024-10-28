@@ -17,12 +17,22 @@ class MenuPage {
     // class attribute
     boolean engineStatus;
     int userOption;
-    Guest currentGuest;
+    User currentGuest;
+    Catalogue catalogue;
 
     // public contructor
     public MenuPage(){
         this.engineStatus = true;
         this.userOption = 0;
+
+        // default item for base catalogue
+        ArrayList<Product> default_items = new ArrayList<>();
+        default_items.add(new Product("Shampoo", 8.5, Category.BATHROOOM, 10));
+        default_items.add(new Product("FootBall", 19.5, Category.TOYS, 2));
+        default_items.add(new Product("Apple", 3.1, Category.FOOD, 200));
+        default_items.add(new Product("Halloween Costume XL", 41, Category.EVENT, 15));
+
+        this.catalogue = new Catalogue(default_items);
     }
 
     // methods list
@@ -95,12 +105,30 @@ class MenuPage {
             System.out.println("How may I help you for today?");
             System.out.println();
             System.out.println("[1] Browse the catalogue");
-            System.out.println("[2] Check your cart");
-            System.out.println("[3] Update your balance");
+            if (this.currentGuest instanceof Guest){
+                System.out.println("[2] Check your cart");
+                System.out.println("[3] Update your balance");
+            } else {
+                System.out.println("[2] Check your item stock");
+                System.out.println("[3] Onhold Deposit");
+            }
             System.out.println("[4] Personal settings");
             System.out.print("Answer: ");
             int option = In.nextInt();
+
+            this.checkUserInputMainScreen(option);
+
         } 
+    }
+
+    public void checkUserInputMainScreen(int option){
+        if (option == 1){
+            if (this.currentGuest instanceof Guest){
+                this.catalogue.diplayAllItems();
+            } else {
+                // pass
+            }
+        }
     }
 }
 
@@ -190,7 +218,7 @@ class Seller extends User{
 // sellable item
 
 enum Category{
-    FOOD, BEVERAGE, HOMEWARE, ELECTRONIC, TOYS, FASHION, OFFICE, EVENT;
+    FOOD, BEVERAGE, HOMEWARE, ELECTRONIC, TOYS, FASHION, OFFICE, EVENT, BATHROOOM;
 }
 
 class Product{
@@ -237,6 +265,11 @@ class Product{
     public double getPrice(){
         return this.price;
     }
+
+    // string
+    public String toString(){
+        return "Item name: " + this.name + " | category: " + this.CATEGORY + " | price: A$" + this.getPrice() + " | current stock: " + this.getStock();
+    }
 }
 
 class Catalogue{
@@ -246,6 +279,16 @@ class Catalogue{
     Catalogue(ArrayList<Product> itemList){
         this.itemList = itemList;
         this.displayedItems = new ArrayList<>();
+    }
+
+    void diplayAllItems(){
+        for (Product a : this.itemList){
+            System.out.println(" (->) " + a);
+            System.out.println();
+        }
+
+        System.out.print("The end of the list, please press [ENTER] to go back");
+        In.nextLine();
     }
 
     void seperateDisplayByCategory(Category category){
