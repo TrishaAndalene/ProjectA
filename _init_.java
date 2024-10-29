@@ -133,9 +133,14 @@ class MenuPage {
             if (this.currentGuest instanceof Guest){
                 this.catalogue.diplayAllItems();
                 this.nextOptionForCatalogue();
-            } else {
-                // pass
             }
+        } else if (option == 2){
+            if (this.currentGuest instanceof Guest){
+                Guest g = (Guest) this.currentGuest;
+                g.displayMyCart();
+                System.out.println();
+                In.nextLine();
+            };
         }
     }
 
@@ -145,6 +150,7 @@ class MenuPage {
         System.out.println();
         System.out.println("[F] filter the list by category");
         System.out.println("[S] filter by name order");
+        System.out.println("[A] add item to my cart");
         System.out.println("[E] return back to the previous page");
         System.out.print("Answer: ");
 
@@ -182,6 +188,14 @@ class MenuPage {
 
         } else if (option.equalsIgnoreCase("S")){
             this.catalogue.diplayAscendingOrder();
+        } else if (option.equalsIgnoreCase("A")){
+            this.catalogue.diplayAllItems();
+            System.out.print("Please type in the product name: ");
+            String product = In.nextLine();
+            if (this.currentGuest instanceof Guest){
+                Guest g = (Guest) this.currentGuest;
+                g.addtoMyCart(this.catalogue.addCollectionUser(product));
+            };
         }
     }
 }
@@ -217,14 +231,20 @@ class User{
     public void setNewPassword(int newPassword){
         this.password = newPassword;
     }
+
 }
 
 class Guest extends User{
 
     // attributes
+    HashMap<Product, Integer> myCart;
+    double currentBalance;
     
     Guest(String name, int age, int password){
         super(name, age, password);
+        this.currentBalance = 0;
+        this.myCart = new HashMap<>();
+        
     }
 
     // independent method
@@ -234,6 +254,20 @@ class Guest extends User{
 
     void reduceBalance(double payment){
         this.currentBalance -= payment;
+    }
+
+    public void addtoMyCart(Product p){
+        System.out.print("How many? ");
+        int quantity = In.nextInt();
+        this.myCart.put(p, quantity);
+    }
+
+    public void displayMyCart(){
+        for (Product a : this.myCart.keySet()){
+            System.out.println(" (->) " + a.name + " | quantity: " + this.myCart.get(a) + " | price: A$" + a.getPrice()*this.myCart.get(a));
+            System.out.println();
+        }
+
     }
 
     // parent method overriding
@@ -339,6 +373,7 @@ class Catalogue{
         this.displayedItems = new ArrayList<>();
     }
 
+    // displaying only
     void diplayAllItems(){
         for (Product a : this.itemList){
             System.out.println(" (->) " + a);
@@ -378,6 +413,16 @@ class Catalogue{
 
         System.out.print("The end of the list, please press [ENTER] to go back");
         In.nextLine();
+    }
+
+    // collection altering
+    Product addCollectionUser(String name){
+        for (Product a : this.itemList){
+            if (a.name.equalsIgnoreCase(name)){
+                return a;
+            }
+        }
+        return null;
     }
 
 }
