@@ -115,7 +115,7 @@ class MenuPage {
                 System.out.println("[3] Onhold Deposit");
             }
             System.out.println("[4] Personal settings");
-            System.out.println("[5] Close the system");
+            System.out.println("[E] Close the system");
             System.out.print("Answer: ");
             int option = In.nextInt();
 
@@ -163,7 +163,7 @@ class MenuPage {
             System.out.println("Category List: ");
             System.out.println("Food | Beverages | Homeware | Electronic | Toys | Fashion | Office | Event | Bathroom");
             System.out.println();
-            System.out.print("Asnwer: ");
+            System.out.print("Answer: ");
             String category = In.nextLine();
 
             if (category.equalsIgnoreCase("food")){
@@ -190,11 +190,16 @@ class MenuPage {
             this.catalogue.diplayAscendingOrder();
         } else if (option.equalsIgnoreCase("A")){
             this.catalogue.diplayAllItems();
-            System.out.print("Please type in the product name: ");
+            System.out.print("Please type in the product name or the product's order: ");
             String product = In.nextLine();
             if (this.currentGuest instanceof Guest){
                 Guest g = (Guest) this.currentGuest;
-                g.addtoMyCart(this.catalogue.addCollectionUser(product));
+                try{
+                    int index = Integer.parseInt(product);
+                    g.addtoMyCart(this.catalogue.addCollectionUser(index));
+                } catch (NumberFormatException e){
+                    g.addtoMyCart(this.catalogue.addCollectionUser(product));
+                }
             };
         }
     }
@@ -423,6 +428,11 @@ class Catalogue{
             }
         }
         return null;
+    }
+
+    Product addCollectionUser(int index){
+        System.out.println(this.itemList.get(index-1));
+        return this.itemList.get(index-1);
     }
 
 }
