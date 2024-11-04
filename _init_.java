@@ -127,6 +127,7 @@ class MenuPage implements PageTrack{
                 System.out.println("[3] Onhold Deposit");
             }
             System.out.println("[4] Personal settings");
+            System.out.println("[5] Check today's news");
             System.out.println("[E] Close the system");
             System.out.print("Answer: ");
             int option = In.nextInt();
@@ -134,6 +135,20 @@ class MenuPage implements PageTrack{
             this.checkUserInputMainScreen(option);
 
         } 
+    }
+
+    public boolean checkPassword(User u){
+        System.out.println("Security identification!");
+        System.out.print("Password: ");
+        int password = In.nextInt();
+        if (u.getPassword() == password){
+            return true;
+        } else {
+            System.out.println("Password mismatch....");
+            System.out.print("Cancelling protocol...");
+            In.nextLine();
+            return false;
+        }
     }
 
     public void checkUserInputMainScreen(int option){
@@ -149,7 +164,7 @@ class MenuPage implements PageTrack{
             if (this.currentGuest instanceof Guest){
                 Guest g = (Guest) this.currentGuest;
                 g.displayMyCart();
-                System.out.println("Would you like to finalize(F), remove(R), or update(U) the list? [Press enter to leave]");
+                System.out.println("Would you like to finalize(F) or remove (R) the list? [Press enter to leave]");
                 System.out.print("Answer: ");
                 String cOption = In.nextLine();
                 this.nextOptionforCart(g, cOption);
@@ -253,24 +268,27 @@ class MenuPage implements PageTrack{
     @Override
     public void nextOptionforCart(Guest g, String option){
         if (option.equalsIgnoreCase("F")){
-            System.out.println("Cart has been finalized, deducting balance");
-            // check balance
-            if (g.currentBalance >= g.cartPrice){
-                g.currentBalance -= g.cartPrice;
-                g.cartPrice = 0;
-                for (int i = 0; i < this.catalogue.itemList.size(); i++){
-                    for (Product b: g.myCart.keySet()){
-                        if (this.catalogue.itemList.get(i).equals(b)){
-                            int stock = g.myCart.get(b);
-                            b.reduceStock(stock);
+            this.showTitleTemplate();
+            if (this.checkPassword(g)){
+                System.out.println("Cart has been finalized, deducting balance");
+                // check balance
+                if (g.currentBalance >= g.cartPrice){
+                    g.currentBalance -= g.cartPrice;
+                    g.cartPrice = 0;
+                    for (int i = 0; i < this.catalogue.itemList.size(); i++){
+                        for (Product b: g.myCart.keySet()){
+                            if (this.catalogue.itemList.get(i).equals(b)){
+                                int stock = g.myCart.get(b);
+                                b.reduceStock(stock);
+                            }
                         }
                     }
-                }
-                g.myCart.clear();
-                System.out.println("Transaction completes, current balance: A$" + g.currentBalance);
-                System.out.print("");
-                In.nextLine();
-            }   
+                    g.myCart.clear();
+                    System.out.println("Transaction completes, current balance: A$" + g.currentBalance);
+                    System.out.print("");
+                    In.nextLine();
+                }  
+            } 
         }
     }  
 
@@ -284,9 +302,23 @@ class MenuPage implements PageTrack{
         System.out.println("----------------------------");
         System.out.println();
         System.out.println("Current balance: A$" + g.currentBalance);
-        System.out.print("Cart's worth: A$" + g.myCart);
+        System.out.print("Cart's worth: A$" + g.cartPrice);
         System.out.println();
-        In.nextLine();
+        
+        System.out.println("Select one of these options: [Balance can only be deposited, any other update may only change once the cart is finalize]");
+        System.out.println("[1] deposit more balance");
+        System.out.println("[2] return back");
+        System.out.print("Answer: ");
+        int option = In.nextInt();
+
+        if (option == 1){
+            this.showTitleTemplate();
+            if (this.checkPassword(g)){
+                System.out.print("Enter deposit value: A$");
+                double add = In.nextDouble();
+                g.depositBalance(add);
+            }
+        }
     }
 
     // page settings for settings
@@ -356,13 +388,15 @@ class Guest extends User{
         System.out.print("How many? ");
         int quantity = In.nextInt();
         this.myCart.put(p, quantity);
+        this.cartPrice += p.getPrice()*quantity;
+        System.out.print(p.name + "is added to the cart");
+        In.nextLine();
     }
 
     public void displayMyCart(){
         System.out.println(this.name + "'s cart list: ");
         for (Product a : this.myCart.keySet()){
-            System.out.println(" (->) " + a.name + " | quantity: " + this.myCart.get(a) + " | price: A$" + a.getPrice()*this.myCart.get(a));
-            this.cartPrice += a.getPrice()*this.myCart.get(a);
+            System.out.println(" (->) " + a.name + " | quantity: " + this.myCart.get(a) + " | price: A$" + this.cartPrice);
             System.out.println();
         }
         System.out.println("Total price: A$" + this.cartPrice);
