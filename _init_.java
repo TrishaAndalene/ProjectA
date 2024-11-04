@@ -17,7 +17,7 @@ interface PageTrack{
     // continue to deeper page
     void nextOptionforCart(Guest g, String option);
     void nextOptionForCatalogue();
-    void nextOptionforBalance();
+    void nextOptionforBalance(Guest g);
     void nextOptionforSettings();
 
 }
@@ -154,6 +154,11 @@ class MenuPage implements PageTrack{
                 String cOption = In.nextLine();
                 this.nextOptionforCart(g, cOption);
             };
+        } else if (option == 3){
+            if (this.currentGuest instanceof Guest){
+                Guest g = (Guest) this.currentGuest;
+                this.nextOptionforBalance(g);
+            };
         }
     }
 
@@ -211,15 +216,20 @@ class MenuPage implements PageTrack{
             this.catalogue.diplayAllItems();
             System.out.print("Please type in the product name or the product's order: ");
             String product = In.nextLine();
-            if (this.currentGuest instanceof Guest){
-                Guest g = (Guest) this.currentGuest;
-                try{
-                    int index = Integer.parseInt(product);
-                    g.addtoMyCart(this.catalogue.addCollectionUser(index));
-                } catch (NumberFormatException e){
-                    g.addtoMyCart(this.catalogue.addCollectionUser(product));
-                }
-            };
+            if (product.isBlank()){
+                System.out.print("...Going back");
+                In.nextLine();
+            } else {
+                if (this.currentGuest instanceof Guest){
+                    Guest g = (Guest) this.currentGuest;
+                    try{
+                        int index = Integer.parseInt(product);
+                        g.addtoMyCart(this.catalogue.addCollectionUser(index));
+                    } catch (NumberFormatException e){
+                        g.addtoMyCart(this.catalogue.addCollectionUser(product));
+                    }
+                };
+            }
             this.checkUserInputMainScreen(1);
         }
     }
@@ -267,7 +277,17 @@ class MenuPage implements PageTrack{
 
     // page settings for balance
     @Override
-    public void nextOptionforBalance(){}
+    public void nextOptionforBalance(Guest g){
+        System.out.println();
+
+        System.out.println(g.name + "'s balance details");
+        System.out.println("----------------------------");
+        System.out.println();
+        System.out.println("Current balance: A$" + g.currentBalance);
+        System.out.print("Cart's worth: A$" + g.myCart);
+        System.out.println();
+        In.nextLine();
+    }
 
     // page settings for settings
     @Override 
