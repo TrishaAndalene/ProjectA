@@ -18,7 +18,7 @@ interface PageTrack{
     void nextOptionforCart(Guest g, String option);
     void nextOptionForCatalogue();
     void nextOptionforBalance(Guest g);
-    void nextOptionforSettings();
+    void nextOptionforSettings(User u);
 
 }
 
@@ -47,7 +47,7 @@ class MenuPage implements PageTrack{
         this.catalogue = new Catalogue(default_items);
     }
 
-    // methods list
+    // methods list show template only
 
     public void showTitleTemplate(){
 
@@ -137,6 +137,7 @@ class MenuPage implements PageTrack{
         } 
     }
 
+    // security check
     public boolean checkPassword(User u){
         System.out.println("Security identification!");
         System.out.print("Password: ");
@@ -151,29 +152,31 @@ class MenuPage implements PageTrack{
         }
     }
 
+    // check user input
     public void checkUserInputMainScreen(int option){
 
         this.showTitleTemplate();
 
+        // universal choice
         if (option == 1){
-            if (this.currentGuest instanceof Guest){
-                this.catalogue.diplayAllItems();
-                this.nextOptionForCatalogue();
-            }
-        } else if (option == 2){
-            if (this.currentGuest instanceof Guest){
-                Guest g = (Guest) this.currentGuest;
+            this.catalogue.diplayAllItems();
+            this.nextOptionForCatalogue();
+        } else if (option == 4){
+            this.nextOptionforSettings(this.currentGuest);
+        }
+
+        // type restricted choice
+        if (this.currentGuest instanceof Guest){
+            Guest g = (Guest) this.currentGuest;
+            if (option == 2){
                 g.displayMyCart();
                 System.out.println("Would you like to finalize(F) or remove (R) the list? [Press enter to leave]");
                 System.out.print("Answer: ");
                 String cOption = In.nextLine();
                 this.nextOptionforCart(g, cOption);
-            };
-        } else if (option == 3){
-            if (this.currentGuest instanceof Guest){
-                Guest g = (Guest) this.currentGuest;
+            } else if (option == 3){
                 this.nextOptionforBalance(g);
-            };
+            }
         }
     }
 
@@ -344,7 +347,50 @@ class MenuPage implements PageTrack{
 
     // page settings for settings
     @Override 
-    public void nextOptionforSettings(){}
+    public void nextOptionforSettings(User g){
+        this.showTitleTemplate();
+        System.out.println();
+
+        if (g instanceof Guest){
+            System.out.println((Guest) g);
+        } else if (g instanceof Seller){
+            System.out.println((Seller) g);
+        }
+
+        System.out.println();
+        System.out.println("What do you want to do?");
+        System.out.println("[1] Update name");
+        System.out.println("[2] Update password");
+        System.out.println("[3] Return back");
+        System.out.print("Answer: ");
+        int option = In.nextInt();
+        this.showTitleTemplate();
+        if (option < 3 && option > 0){
+            if (this.checkPassword(g)){
+                if (option == 1){
+                    this.showTitleTemplate();
+                    System.err.print("Enter a new name: ");
+                    String newName = In.nextLine();
+                    if (!newName.isBlank()){
+                        g.name = newName;
+                    } else {
+                        System.out.print("Denied..");
+                        In.nextLine();
+                    }
+                    this.checkUserInputMainScreen(4);
+                } else if (option == 2){
+                    this.showTitleTemplate();
+                    System.out.print("Enter new password: ");
+                    int newPassword = In.nextInt();
+                    g.setNewPassword(newPassword);
+                    this.checkUserInputMainScreen(4);
+                };
+            } else {
+                System.out.print("Access denied....");
+                In.nextLine();
+            }
+        }
+    }
 }
 
 
