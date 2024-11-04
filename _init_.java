@@ -11,8 +11,20 @@ public class _init_{
     }
 };
 
+// -------------------- INTERFACE SETTINGS -------------------------
+interface PageTrack{
+
+    // continue to deeper page
+    void nextOptionforCart(Guest g, String option);
+    void nextOptionForCatalogue();
+    void nextOptionforBalance();
+    void nextOptionforSettings();
+
+}
+
 // ------------------------- MAIN SCREEN --------------------------
-class MenuPage {
+
+class MenuPage implements PageTrack{
     
     // class attribute
     boolean engineStatus;
@@ -88,7 +100,7 @@ class MenuPage {
                     this.showMainScreen();
 
                 } catch (Exception e){
-                    System.out.println("Session closed due to errors, please restart the system");
+                    System.out.println("Session closed, please restart the system");
                     break;
                 }
             }
@@ -119,16 +131,15 @@ class MenuPage {
             System.out.print("Answer: ");
             int option = In.nextInt();
 
-            if (option == 5){
-                this.engineStatus = false;
-            }
-
             this.checkUserInputMainScreen(option);
 
         } 
     }
 
     public void checkUserInputMainScreen(int option){
+
+        this.showTitleTemplate();
+
         if (option == 1){
             if (this.currentGuest instanceof Guest){
                 this.catalogue.diplayAllItems();
@@ -138,18 +149,22 @@ class MenuPage {
             if (this.currentGuest instanceof Guest){
                 Guest g = (Guest) this.currentGuest;
                 g.displayMyCart();
-                System.out.println();
-                In.nextLine();
+                System.out.println("Would you like to finalize(F), remove(R), or update(U) the list? [Press enter to leave]");
+                System.out.print("Answer: ");
+                String cOption = In.nextLine();
+                this.nextOptionforCart(g, cOption);
             };
         }
     }
 
+    // page settings for catalogue
+    @Override
     public void nextOptionForCatalogue(){
         System.out.println();
         System.out.println("Do you need help with ?");
         System.out.println();
         System.out.println("[F] filter the list by category");
-        System.out.println("[S] filter by name order");
+        System.out.println("[S] other filtering option");
         System.out.println("[A] add item to my cart");
         System.out.println("[E] return back to the previous page");
         System.out.print("Answer: ");
@@ -186,9 +201,13 @@ class MenuPage {
                 this.catalogue.seperateDisplayByCategory(Category.BATHROOOM);
             }
 
+            this.checkUserInputMainScreen(1);
+
         } else if (option.equalsIgnoreCase("S")){
-            this.catalogue.diplayAscendingOrder();
+            this.filteringOption();
+            this.checkUserInputMainScreen(1);
         } else if (option.equalsIgnoreCase("A")){
+            this.showTitleTemplate();
             this.catalogue.diplayAllItems();
             System.out.print("Please type in the product name or the product's order: ");
             String product = In.nextLine();
@@ -201,14 +220,64 @@ class MenuPage {
                     g.addtoMyCart(this.catalogue.addCollectionUser(product));
                 }
             };
+            this.checkUserInputMainScreen(1);
         }
     }
+
+    public void filteringOption(){
+        System.out.println();
+        
+        System.out.println("Filtering options: ");
+        System.out.println("[1] high - low price");
+        System.out.println("[2] low - high price");
+        System.out.print("Answer: ");
+        int option = In.nextInt();
+        if (option == 1){
+            this.catalogue.filterByPrice(true);
+        } else if (option == 2){
+            this.catalogue.filterByPrice(false);
+        }
+    }
+
+    // page settings for cart
+    @Override
+    public void nextOptionforCart(Guest g, String option){
+        if (option.equalsIgnoreCase("F")){
+            System.out.println("Cart has been finalized, deducting balance");
+            // check balance
+            if (g.currentBalance >= g.cartPrice){
+                g.currentBalance -= g.cartPrice;
+                g.cartPrice = 0;
+                for (int i = 0; i < this.catalogue.itemList.size(); i++){
+                    for (Product b: g.myCart.keySet()){
+                        if (this.catalogue.itemList.get(i).equals(b)){
+                            int stock = g.myCart.get(b);
+                            b.reduceStock(stock);
+                        }
+                    }
+                }
+                g.myCart.clear();
+                System.out.println("Transaction completes, current balance: A$" + g.currentBalance);
+                System.out.print("");
+                In.nextLine();
+            }   
+        }
+    }  
+
+
+    // page settings for balance
+    @Override
+    public void nextOptionforBalance(){}
+
+    // page settings for settings
+    @Override 
+    public void nextOptionforSettings(){}
 }
 
 
 // ------------------------- ALL OBJECTS --------------------------
 // parent User
-class User{ 
+abstract class User{ 
 
     // attributes list
     String name;
@@ -244,10 +313,12 @@ class Guest extends User{
     // attributes
     HashMap<Product, Integer> myCart;
     double currentBalance;
+    double cartPrice;
     
     Guest(String name, int age, int password){
         super(name, age, password);
-        this.currentBalance = 0;
+        this.currentBalance = 100;
+        this.cartPrice = 0;
         this.myCart = new HashMap<>();
         
     }
@@ -268,11 +339,13 @@ class Guest extends User{
     }
 
     public void displayMyCart(){
+        System.out.println(this.name + "'s cart list: ");
         for (Product a : this.myCart.keySet()){
             System.out.println(" (->) " + a.name + " | quantity: " + this.myCart.get(a) + " | price: A$" + a.getPrice()*this.myCart.get(a));
+            this.cartPrice += a.getPrice()*this.myCart.get(a);
             System.out.println();
         }
-
+        System.out.println("Total price: A$" + this.cartPrice);
     }
 
     // parent method overriding
@@ -403,6 +476,7 @@ class Catalogue{
 
         System.out.print("The end of the list, please press [ENTER] to go back");
         In.nextLine();
+        
     };
 
     void diplayAscendingOrder(){
@@ -410,14 +484,18 @@ class Catalogue{
         Comparator<Product> comparator = Comparator.comparing(Product::getName);
 
         Collections.sort(this.itemList, comparator);
+    }
 
-        for (Product a : this.itemList){
-            System.out.println(" (->) " + a);
-            System.out.println();
+    void filterByPrice(boolean status){
+        if (status == true){
+            Comparator<Product> comparator = Comparator.comparing(Product::getPrice).reversed();
+
+            Collections.sort(this.itemList, comparator);
+        } else {
+            Comparator<Product> comparator = Comparator.comparing(Product::getPrice);
+
+            Collections.sort(this.itemList, comparator);
         }
-
-        System.out.print("The end of the list, please press [ENTER] to go back");
-        In.nextLine();
     }
 
     // collection altering
