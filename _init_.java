@@ -127,7 +127,7 @@ class MenuPage implements PageTrack{
                 System.out.println("[3] Onhold Deposit");
             }
             System.out.println("[4] Personal settings");
-            System.out.println("[5] Check today's news");
+            System.out.println("[5] Search for specific item");
             System.out.println("[E] Close the system");
             System.out.print("Answer: ");
             int option = In.nextInt();
@@ -163,6 +163,8 @@ class MenuPage implements PageTrack{
             this.nextOptionForCatalogue();
         } else if (option == 4){
             this.nextOptionforSettings(this.currentGuest);
+        } else if (option == 5){
+            this.catalogue.lookforItem();
         }
 
         // type restricted choice
@@ -636,6 +638,27 @@ class Catalogue{
             Comparator<Product> comparator = Comparator.comparing(Product::getPrice);
 
             Collections.sort(this.itemList, comparator);
+        }
+    }
+
+    void lookforItem(){
+        System.out.print("Please type the product name: ");
+        String product = In.nextLine();
+        boolean found = false;
+        if (!product.isBlank()){
+            for (Product p : this.itemList){
+                if (p.getName().equalsIgnoreCase(product)){
+                    System.out.println("Item Data is found:");
+                    System.out.println("(->) " + p);
+                    System.out.print("Press enter to go back");
+                    found = true;
+                    In.nextLine();
+                }
+            };
+            if (found == false){
+                System.out.println("Item is not found");
+                In.nextLine();
+            }
         }
     }
 
