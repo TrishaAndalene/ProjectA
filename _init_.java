@@ -289,8 +289,28 @@ class MenuPage implements PageTrack{
                     In.nextLine();
                 }  
             } 
-        }
-    }  
+            this.checkUserInputMainScreen(2);
+
+        } else if (option.equalsIgnoreCase("R")){
+            this.showTitleTemplate();
+            g.displayMyCart();
+            System.out.print("Please type in the product name or the product's order: ");
+            String product = In.nextLine();
+            if (product.isBlank()){
+                System.out.print("...Going back");
+                In.nextLine();
+            } else {
+                try{
+                    int index = Integer.parseInt(product);
+                    g.removeItemMyCart(index);
+                } catch (NumberFormatException e){
+                    g.removeItemMyCart(product);
+                }
+
+                };
+                this.checkUserInputMainScreen(2);
+            };
+        } 
 
 
     // page settings for balance
@@ -317,6 +337,7 @@ class MenuPage implements PageTrack{
                 System.out.print("Enter deposit value: A$");
                 double add = In.nextDouble();
                 g.depositBalance(add);
+                this.checkUserInputMainScreen(3);
             }
         }
     }
@@ -389,14 +410,34 @@ class Guest extends User{
         int quantity = In.nextInt();
         this.myCart.put(p, quantity);
         this.cartPrice += p.getPrice()*quantity;
-        System.out.print(p.name + "is added to the cart");
+        System.out.print(p.name + " is added to the cart");
+        In.nextLine();
+    }
+
+    void removeItemMyCart(String name){
+        for (Product a : this.myCart.keySet()){
+            if (a.name.equalsIgnoreCase(name)){
+                this.cartPrice -= a.getPrice()*this.myCart.get(a);
+                this.myCart.remove(a);
+            }
+        }
+    }
+
+    void removeItemMyCart(int index){
+        ArrayList<Product> tempList = new ArrayList<>();
+        for (Product a : this.myCart.keySet()){
+            tempList.add(a);
+        }
+        this.cartPrice -= tempList.get(index-1).getPrice()*this.myCart.get(tempList.get(index-1));
+        this.myCart.remove(tempList.get(index-1));
+        System.out.print("Order removed");
         In.nextLine();
     }
 
     public void displayMyCart(){
         System.out.println(this.name + "'s cart list: ");
         for (Product a : this.myCart.keySet()){
-            System.out.println(" (->) " + a.name + " | quantity: " + this.myCart.get(a) + " | price: A$" + this.cartPrice);
+            System.out.println(" (->) " + a.name + " | quantity: " + this.myCart.get(a) + " | price: A$" + this.myCart.get(a)*a.getPrice());
             System.out.println();
         }
         System.out.println("Total price: A$" + this.cartPrice);
