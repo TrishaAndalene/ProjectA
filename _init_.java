@@ -467,6 +467,8 @@ class Guest extends User{
             if (a.name.equalsIgnoreCase(name)){
                 this.cartPrice -= a.getPrice()*this.myCart.get(a);
                 this.myCart.remove(a);
+                System.out.print("Order removed");
+                In.nextLine();
             }
         }
     }
