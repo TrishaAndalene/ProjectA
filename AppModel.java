@@ -38,22 +38,10 @@ public class AppModel implements PageTrack{
 
     // methods list show template only
 
-    public static String showTitleTemplate(){
-        String s = "";
-
-        // format writing
-        s += "\n __   __   __        ___  __  ___        ";
-        s += "\n|__) |__) /  \\    | |__  /  `  |      /\\ ";
-        s += "\n|    |  \\ \\__/ \\__/ |___ \\__,  |     /~~\\";
-        s += "\n \n \n";
-
-        return s;
-    }
-
     public void showRegistration(){
         while (this.engineStatus){
 
-            this.showTitleTemplate();
+            AppView.showTitleTemplate();
             
             // create the user (I think we can add an final admin account)
             System.out.println("ACCOUNT REGISTRATION");
@@ -92,7 +80,7 @@ public class AppModel implements PageTrack{
         while (this.engineStatus){
             //to make it look like cmd clear
 
-            this.showTitleTemplate();
+            AppView.showTitleTemplate();
 
             System.out.println("Welcome dear user, " + this.currentGuest.name);
             System.out.println("How may I help you for today?");
@@ -134,7 +122,7 @@ public class AppModel implements PageTrack{
     // check user input
     public void checkUserInputMainScreen(int option){
 
-        this.showTitleTemplate();
+        AppView.showTitleTemplate();
 
         // universal choice
         if (option == 1){
@@ -178,7 +166,7 @@ public class AppModel implements PageTrack{
         // if need sorting
         if (option.equalsIgnoreCase("F")){
             System.out.println();
-            this.showTitleTemplate();
+            AppView.showTitleTemplate();
             System.out.println("Category List: ");
             System.out.println("Food | Beverages | Homeware | Electronic | Toys | Fashion | Office | Event | Bathroom");
             System.out.println();
@@ -211,7 +199,7 @@ public class AppModel implements PageTrack{
             this.filteringOption();
             this.checkUserInputMainScreen(1);
         } else if (option.equalsIgnoreCase("A")){
-            this.showTitleTemplate();
+            AppView.showTitleTemplate();
             this.catalogue.diplayAllItems();
             System.out.print("Please type in the product name or the product's order: ");
             String product = In.nextLine();
@@ -252,7 +240,7 @@ public class AppModel implements PageTrack{
     @Override
     public void nextOptionforCart(Guest g, String option){
         if (option.equalsIgnoreCase("F")){
-            this.showTitleTemplate();
+            AppView.showTitleTemplate();
             if (this.checkPassword(g)){
                 System.out.println("Cart has been finalized, deducting balance");
                 // check balance
@@ -276,7 +264,7 @@ public class AppModel implements PageTrack{
             this.checkUserInputMainScreen(2);
 
         } else if (option.equalsIgnoreCase("R")){
-            this.showTitleTemplate();
+            AppView.showTitleTemplate();
             g.displayMyCart();
             System.out.print("Please type in the product name or the product's order: ");
             String product = In.nextLine();
@@ -316,7 +304,7 @@ public class AppModel implements PageTrack{
         int option = In.nextInt();
 
         if (option == 1){
-            this.showTitleTemplate();
+            AppView.showTitleTemplate();
             if (this.checkPassword(g)){
                 System.out.print("Enter deposit value: A$");
                 double add = In.nextDouble();
@@ -329,7 +317,7 @@ public class AppModel implements PageTrack{
     // page settings for settings
     @Override 
     public void nextOptionforSettings(User g){
-        this.showTitleTemplate();
+        AppView.showTitleTemplate();
         System.out.println();
 
         if (g instanceof Guest){
@@ -345,11 +333,11 @@ public class AppModel implements PageTrack{
         System.out.println("[3] Return back");
         System.out.print("Answer: ");
         int option = In.nextInt();
-        this.showTitleTemplate();
+        AppView.showTitleTemplate();
         if (option < 3 && option > 0){
             if (this.checkPassword(g)){
                 if (option == 1){
-                    this.showTitleTemplate();
+                    AppView.showTitleTemplate();
                     System.err.print("Enter a new name: ");
                     String newName = In.nextLine();
                     if (!newName.isBlank()){
@@ -360,7 +348,7 @@ public class AppModel implements PageTrack{
                     }
                     this.checkUserInputMainScreen(4);
                 } else if (option == 2){
-                    this.showTitleTemplate();
+                    AppView.showTitleTemplate();
                     System.out.print("Enter new password: ");
                     int newPassword = In.nextInt();
                     g.setNewPassword(newPassword);
@@ -701,3 +689,4 @@ class BroadCast{
     }
 
 }
+
