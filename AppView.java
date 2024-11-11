@@ -1,20 +1,14 @@
 // ------------------------- JAVAFX LIBRARY ---------------------------
-import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.HBox;
-import javafx.stage.Stage;
-
 
 public class AppView {
     
@@ -25,9 +19,21 @@ public class AppView {
 
     }
 
+    public static String showTitleTemplate(){
+        String s = "";
+
+        // format writing
+        s += "\n __   __   __        ___  __  ___        ";
+        s += "\n|__) |__) /  \\    | |__  /  `  |      /\\ ";
+        s += "\n|    |  \\ \\__/ \\__/ |___ \\__,  |     /~~\\";
+        s += "\n \n \n";
+
+        return s;
+    }
+
     public Scene getRegisScene(){
          // object
-         String title = AppModel.showTitleTemplate();
+         String title = AppView.showTitleTemplate();
          Label titleLabel = new Label(title);
          titleLabel.setFont(Font.font("MonoSpace", FontWeight.EXTRA_BOLD,16));
          titleLabel.setTextFill(Color.WHITE);
