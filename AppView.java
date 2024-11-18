@@ -149,13 +149,14 @@ public class AppView {
         RadioButton guestBtn = new RadioButton("Buyer");
         guestBtn.setToggleGroup(toggleAccountCreateGroup);
 
-        Label warningLabel = new Label("");
+        Label warningLabel = new Label("<!> check all the requirements");
+        warningLabel.setVisible(false);
         warningLabel.setTextFill(Color.ORANGERED);
 
         CheckBox ageVerify = new CheckBox("Yes, I agree to the term and already 18 by the time       ");
         Button createBtn = new Button("Sign up");
         createBtn.setOnAction(e -> {
-            if (ageVerify.isSelected()){
+            if (ageVerify.isSelected() && this.control.stringNotNull(regisAcc.getText()) && this.control.stringNotNull(regisPass.getText())){
                 if (sellerBtn.isSelected()){
                     this.model.createSeller(regisAcc.getText(), regisPass.getText(), "");
                     sellerBtn.setSelected(false);
@@ -164,12 +165,12 @@ public class AppView {
                     guestBtn.setSelected(false);
                 }
                 this.createAccountManagerScreen();
-                warningLabel.setText("");
+                warningLabel.setVisible(false);
                 regisAcc.clear();
                 regisPass.clear();
                 ageVerify.setSelected(false);
             } else {
-                warningLabel.setText("<!> check all the requirements");
+                warningLabel.setVisible(true);
             }
         });
         this.buttonAnimation(createBtn);
@@ -233,19 +234,28 @@ public class AppView {
   
         Label acceptPass = new Label("✘   ");
         acceptPass.setTextFill(Color.RED);
-  
-        Label accountType = new Label("Account type:   ");
- 
-        ToggleGroup toggleAccountCreateGroup = new ToggleGroup();
-        RadioButton sellerBtn = new RadioButton("Seller");
-        sellerBtn.setToggleGroup(toggleAccountCreateGroup);
- 
-        RadioButton guestBtn = new RadioButton("Guest");
-        guestBtn.setToggleGroup(toggleAccountCreateGroup);
+
+        Label warningLabel = new Label();
+        warningLabel.setVisible(false);
+        warningLabel.setTextFill(Color.ORANGERED);
 
         Button logInBtn = new Button("Log in");
         logInBtn.setOnAction(e -> {
-            this.getSpecificScene("menu");
+            if (this.control.stringNotNull(regisAcc.getText()) && this.control.stringNotNull(regisPass.getText())){
+                if (this.model.loginAcct(regisAcc.getText(), regisPass.getText())){
+                    this.getSpecificScene("menu");
+                }
+                else {
+                    warningLabel.setText("<!> Account is not found!");
+                    warningLabel.setVisible(true);
+                }
+            } else {
+                warningLabel.setText("<!> fill in all box");
+                warningLabel.setVisible(true);
+            }
+
+            regisAcc.clear();
+            regisPass.clear();
         });
         this.buttonAnimation(logInBtn);
 
@@ -272,11 +282,6 @@ public class AppView {
         horiRootButton.getChildren().addAll(logInBtn);
         horiRootButton.setAlignment(Pos.CENTER);
         horiRootButton.setTranslateX(90);
- 
-        HBox horiRootAccount = new HBox();
-        horiRootAccount.getChildren().addAll(accountType, guestBtn, sellerBtn);
-        horiRootAccount.setAlignment(Pos.CENTER_LEFT);
-        horiRootAccount.setSpacing(paddingLeft+25);
   
         HBox horiRootPass = new HBox(paddingLeft);
         horiRootPass.getChildren().addAll(pass, regisPass, acceptPass);
@@ -287,7 +292,7 @@ public class AppView {
         horiRoot.setAlignment(Pos.CENTER);
   
         VBox fillBox = new VBox();
-        fillBox.getChildren().addAll(horiRoot, horiRootPass, horiRootAccount, horiRootButton);
+        fillBox.getChildren().addAll(horiRoot, horiRootPass, warningLabel, horiRootButton);
         fillBox.setAlignment(Pos.TOP_CENTER);
         fillBox.setPrefHeight(260);
         fillBox.setMaxWidth(320);
