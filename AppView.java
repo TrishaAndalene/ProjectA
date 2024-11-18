@@ -7,6 +7,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.layout.HBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 // ---------------------------- JAVA LIBRARY ----------------------------
 import java.util.*;
@@ -17,12 +19,16 @@ public class AppView {
     final static int ScreenHeight = 450;
 
     public HashMap<String, Scene> scenes;
+    protected Stage primaryStage;
 
     public AppView(){
         this.scenes = new HashMap<>();
+        this.primaryStage = null;
 
         // trigger to for scenes
         this.createRegisScreen();
+        this.createLoginScreen();
+        this.createMenuScreen();
     }
 
     // only static for now
@@ -36,11 +42,61 @@ public class AppView {
         s += "\n \n \n";
 
         Label titleLabel = new Label(s);
-        titleLabel.setFont(Font.font("MonoSpace", FontWeight.EXTRA_BOLD,16));
+        this.setLabelFont(titleLabel, 16);
         return titleLabel;
     }
 
     // create new windows
+    public void createAccountManagerScreen(){
+
+        Stage accountStart = new Stage();
+        accountStart.setTitle("Account Manager");
+
+        Label questionAcc = new Label("Do you have an account?");
+        this.setLabelFont(questionAcc, 16);
+        
+        Label warningLabel = new Label("<!> you will need 1 seller and buyer account to start");
+        this.setLabelFont(warningLabel, 10);
+        warningLabel.setTextFill(Color.ORANGERED);
+
+        Button yesButton = new Button("Yes");
+        yesButton.setOnAction(e -> {
+            accountStart.close();
+            this.getSpecificScene("login");
+        });
+
+        Button noButton = new Button("No");
+        noButton.setOnAction(e -> {
+            accountStart.close();
+            this.getSpecificScene("register");
+        });
+
+        this.multipleButtonAnimation(yesButton, noButton);
+
+        // box creation
+        HBox btnBox = new HBox();
+        btnBox.getChildren().addAll(yesButton, noButton);
+        btnBox.setAlignment(Pos.CENTER);
+        btnBox.setSpacing(50);
+        
+        VBox windowBox = new VBox();
+        windowBox.getChildren().addAll(questionAcc, warningLabel, btnBox);
+        windowBox.setAlignment(Pos.CENTER);
+        windowBox.setSpacing(20);
+
+        // new window
+        accountStart.setScene(new Scene(windowBox, 350, 150));
+
+        // to set the window to unskippable and close all windows if force-close
+        accountStart.initModality(Modality.APPLICATION_MODAL);
+
+        accountStart.setOnCloseRequest(e -> {
+            javafx.application.Platform.exit();
+        });
+
+        // show the new window
+        accountStart.show();
+    }
 
     // create all pages/scenes
     void createRegisScreen(){
@@ -54,8 +110,8 @@ public class AppView {
         regisAcc.setPromptText("Enter new name");
         regisAcc.setPrefWidth(200);;
   
-        Label acceptName = new Label("✔   ");
-        acceptName.setTextFill(Color.FORESTGREEN);
+        Label acceptName = new Label("✘   ");
+        acceptName.setTextFill(Color.RED);
          
         Label age = new Label("Age:          ");
   
@@ -63,8 +119,8 @@ public class AppView {
         regisAge.setPromptText("Enter your age");
         regisAge.setPrefWidth(200);
   
-        Label acceptAge = new Label("✔   ");
-        acceptAge.setTextFill(Color.FORESTGREEN);
+        Label acceptAge = new Label("✘   ");
+        acceptAge.setTextFill(Color.RED);
   
         Label pass = new Label("Password: ");
   
@@ -72,8 +128,22 @@ public class AppView {
         regisPass.setPromptText("Enter your password");
         regisPass.setPrefWidth(200);
   
-        Label acceptPass = new Label("✔   ");
-        acceptPass.setTextFill(Color.FORESTGREEN);
+        Label acceptPass = new Label("✘   ");
+        acceptPass.setTextFill(Color.RED);
+
+        // textfield change 
+        regisAge.textProperty().addListener((observable) -> {
+            acceptAge.setText("✔   ");
+            acceptAge.setTextFill(Color.FORESTGREEN);
+        });
+        regisAcc.textProperty().addListener((observable) -> {
+            acceptName.setText("✔   ");
+            acceptName.setTextFill(Color.FORESTGREEN);
+        });
+        regisPass.textProperty().addListener((observable) -> {
+            acceptPass.setText("✔   ");
+            acceptPass.setTextFill(Color.FORESTGREEN);
+        });
   
         Label accountType = new Label("Account type:   ");
  
@@ -86,16 +156,10 @@ public class AppView {
 
         CheckBox ageVerify = new CheckBox("Yes, I agree to the term and already 18 by the time       ");
         Button createBtn = new Button("Sign up");
-        createBtn.setStyle("-fx-background-color: #7AB2D3");
-        createBtn.setTextFill(Color.WHITE);
-        createBtn.setOnMouseEntered(e -> {
-            createBtn.setStyle("-fx-background-color: white"); 
-            createBtn.setTextFill(Color.BLACK);
+        createBtn.setOnAction(e -> {
+            this.createAccountManagerScreen();
         });
-        createBtn.setOnMouseExited(e -> {
-            createBtn.setStyle("-fx-background-color: #7AB2D3"); 
-            createBtn.setTextFill(Color.WHITE);
-        });
+        this.buttonAnimation(createBtn);
   
         // fill in first V box
  
@@ -138,6 +202,92 @@ public class AppView {
         this.scenes.put("register", new Scene(root, ScreenWidth, ScreenHeight));
     }
 
+    void createLoginScreen(){
+        // object
+        Label titleLabel = this.showTitleTemplate();
+  
+        // label
+        Label username = new Label("Username: ");
+  
+        TextField regisAcc = new TextField();
+        regisAcc.setPromptText("Enter your username");
+        regisAcc.setPrefWidth(200);;
+  
+        Label acceptName = new Label("✘   ");
+        acceptName.setTextFill(Color.RED);
+  
+        Label pass = new Label("Password: ");
+  
+        TextField regisPass = new TextField();
+        regisPass.setPromptText("Enter your password");
+        regisPass.setPrefWidth(200);
+  
+        Label acceptPass = new Label("✘   ");
+        acceptPass.setTextFill(Color.RED);
+  
+        Label accountType = new Label("Account type:   ");
+ 
+        ToggleGroup toggleAccountCreateGroup = new ToggleGroup();
+        RadioButton sellerBtn = new RadioButton("Seller");
+        sellerBtn.setToggleGroup(toggleAccountCreateGroup);
+ 
+        RadioButton guestBtn = new RadioButton("Guest");
+        guestBtn.setToggleGroup(toggleAccountCreateGroup);
+
+        Button logInBtn = new Button("Log in");
+        logInBtn.setOnAction(e -> {
+            this.getSpecificScene("menu");
+        });
+        this.buttonAnimation(logInBtn);
+
+        // textfield check
+        regisAcc.textProperty().addListener((observable) -> {
+            acceptName.setText("✔   ");
+            acceptName.setTextFill(Color.FORESTGREEN);
+        });
+        regisPass.textProperty().addListener((observable) -> {
+            acceptPass.setText("✔   ");
+            acceptPass.setTextFill(Color.FORESTGREEN);
+        });
+  
+  
+        // fill in first V box
+ 
+        int paddingLeft = 17;
+  
+        HBox horiRootButton = new HBox();
+        horiRootButton.getChildren().addAll(logInBtn);
+        horiRootButton.setAlignment(Pos.CENTER);
+        horiRootButton.setTranslateX(90);
+ 
+        HBox horiRootAccount = new HBox();
+        horiRootAccount.getChildren().addAll(accountType, guestBtn, sellerBtn);
+        horiRootAccount.setAlignment(Pos.CENTER_LEFT);
+        horiRootAccount.setSpacing(paddingLeft+25);
+  
+        HBox horiRootPass = new HBox(paddingLeft);
+        horiRootPass.getChildren().addAll(pass, regisPass, acceptPass);
+        horiRootPass.setAlignment(Pos.CENTER);
+  
+        HBox horiRoot = new HBox(paddingLeft);
+        horiRoot.getChildren().addAll(username, regisAcc, acceptName);
+        horiRoot.setAlignment(Pos.CENTER);
+  
+        VBox fillBox = new VBox();
+        fillBox.getChildren().addAll(horiRoot, horiRootPass, horiRootAccount, horiRootButton);
+        fillBox.setAlignment(Pos.TOP_CENTER);
+        fillBox.setPrefHeight(260);
+        fillBox.setMaxWidth(320);
+        fillBox.setSpacing(20);
+  
+        int paddingTop = 30;
+        VBox root = new VBox(paddingTop);
+        root.getChildren().addAll(titleLabel, fillBox);
+        root.setAlignment(Pos.TOP_CENTER);
+ 
+        this.scenes.put("login", new Scene(root, ScreenWidth, ScreenHeight));
+    }
+
     void createMenuScreen(){
         Label titleLabel = this.showTitleTemplate();
 
@@ -149,12 +299,35 @@ public class AppView {
         this.scenes.put("menu", new Scene(root, ScreenWidth, ScreenHeight));
     }
     
+    // all animations
+    void buttonAnimation(Button button){
+        button.setStyle("-fx-background-color: #7AB2D3");
+        button.setTextFill(Color.WHITE);
+        button.setOnMouseEntered(e -> {
+            button.setStyle("-fx-background-color: white"); 
+            button.setTextFill(Color.BLACK);
+        });
+        button.setOnMouseExited(e -> {
+            button.setStyle("-fx-background-color: #7AB2D3"); 
+            button.setTextFill(Color.WHITE);
+        });
+    }
+
+    void multipleButtonAnimation(Button button1, Button button2){
+        this.buttonAnimation(button1);
+        this.buttonAnimation(button2);
+    }
+
+    void setLabelFont(Label label, int size){
+        label.setFont(Font.font("MonoSpace", FontWeight.EXTRA_BOLD, size));
+    }
+
     // accesor for all scenes
     public Scene getRegisScene(){
         return this.scenes.get("register");
     }
 
-    public Scene getMainScreen(){
-        return this.scenes.get("menu");
+    public void getSpecificScene(String key){
+        this.primaryStage.setScene(this.scenes.get(key));
     }
 }
