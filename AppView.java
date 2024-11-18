@@ -116,15 +116,6 @@ public class AppView {
   
         Label acceptName = new Label("✘   ");
         acceptName.setTextFill(Color.RED);
-         
-        Label age = new Label("Age:          ");
-  
-        TextField regisAge = new TextField();
-        regisAge.setPromptText("Enter your age");
-        regisAge.setPrefWidth(200);
-  
-        Label acceptAge = new Label("✘   ");
-        acceptAge.setTextFill(Color.RED);
   
         Label pass = new Label("Password: ");
   
@@ -136,12 +127,6 @@ public class AppView {
         acceptPass.setTextFill(Color.RED);
 
         // textfield change 
-        regisAge.textProperty().addListener((observable) -> {
-            if (this.control.stringNotNull(regisAge.getText()) && this.control.realInt(regisAge.getText())){
-                acceptAge.setText("✔   ");
-                acceptAge.setTextFill(Color.FORESTGREEN);
-            };
-        });
         regisAcc.textProperty().addListener((observable) -> {
             if (this.control.stringNotNull(regisAcc.getText())){
                 acceptName.setText("✔   ");
@@ -161,13 +146,31 @@ public class AppView {
         RadioButton sellerBtn = new RadioButton("Seller");
         sellerBtn.setToggleGroup(toggleAccountCreateGroup);
  
-        RadioButton guestBtn = new RadioButton("Guest");
+        RadioButton guestBtn = new RadioButton("Buyer");
         guestBtn.setToggleGroup(toggleAccountCreateGroup);
+
+        Label warningLabel = new Label("");
+        warningLabel.setTextFill(Color.ORANGERED);
 
         CheckBox ageVerify = new CheckBox("Yes, I agree to the term and already 18 by the time       ");
         Button createBtn = new Button("Sign up");
         createBtn.setOnAction(e -> {
-            this.createAccountManagerScreen();
+            if (ageVerify.isSelected()){
+                if (sellerBtn.isSelected()){
+                    this.model.createSeller(regisAcc.getText(), regisPass.getText(), "");
+                    sellerBtn.setSelected(false);
+                } else {
+                    this.model.createBuyer(regisAcc.getText(), regisPass.getText());
+                    guestBtn.setSelected(false);
+                }
+                this.createAccountManagerScreen();
+                warningLabel.setText("");
+                regisAcc.clear();
+                regisPass.clear();
+                ageVerify.setSelected(false);
+            } else {
+                warningLabel.setText("<!> check all the requirements");
+            }
         });
         this.buttonAnimation(createBtn);
   
@@ -185,10 +188,6 @@ public class AppView {
         horiRootAccount.setAlignment(Pos.CENTER_LEFT);
         horiRootAccount.setSpacing(paddingLeft+25);
   
-        HBox horiRootage = new HBox(paddingLeft);
-        horiRootage.getChildren().addAll(age, regisAge, acceptAge);
-        horiRootage.setAlignment(Pos.CENTER);
-  
         HBox horiRootPass = new HBox(paddingLeft);
         horiRootPass.getChildren().addAll(pass, regisPass, acceptPass);
         horiRootPass.setAlignment(Pos.CENTER);
@@ -198,7 +197,7 @@ public class AppView {
         horiRoot.setAlignment(Pos.CENTER);
   
         VBox fillBox = new VBox();
-        fillBox.getChildren().addAll(horiRoot, horiRootage, horiRootPass, horiRootAccount, ageVerify, horiRootButton);
+        fillBox.getChildren().addAll(horiRoot, horiRootPass, horiRootAccount, warningLabel, ageVerify, horiRootButton);
         fillBox.setAlignment(Pos.TOP_CENTER);
         fillBox.setPrefHeight(260);
         fillBox.setMaxWidth(320);
