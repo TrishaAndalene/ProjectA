@@ -102,6 +102,44 @@ public class AppView {
         accountStart.show();
     }
 
+    public void createGreetingWindow(){
+        Stage greetings = new Stage();
+        greetings.setTitle("Welcome to D.D.D shopping simulator!");
+
+        Label greetTitle = new Label("       Welcome to \nD.D.D shopping simulator!");
+        this.setLabelFont(greetTitle, 16);
+        greetTitle.setWrapText(true);
+        greetTitle.setTranslateX(10);
+        greetTitle.setTranslateY(20);
+        
+        Label greetingLabel = new Label("Hey there, pleased to meet you! \nFeel free to wander around! \nHappy learning!!");
+        greetingLabel.setWrapText(true);
+        this.setLabelFont(greetingLabel, 11);
+        greetingLabel.setTranslateX(10);
+        greetingLabel.setTranslateY(20);
+
+        Button yesBtn = new Button("Yes");
+        yesBtn.setTranslateY(20);
+        yesBtn.setOnAction(e -> {
+            greetings.close();
+        });
+
+        this.buttonAnimation(yesBtn);
+
+        // box creation
+
+        VBox windowBox = new VBox();
+        windowBox.getChildren().addAll(greetTitle, greetingLabel, yesBtn);
+        windowBox.setAlignment(Pos.TOP_CENTER);
+        windowBox.setSpacing(20);
+
+        // new window
+        greetings.setScene(new Scene(windowBox, 350, 200));
+
+        // show the new window
+        greetings.show();
+    }
+
     // create all pages/scenes
     void createRegisScreen(){
         // object
@@ -244,12 +282,15 @@ public class AppView {
             if (this.control.stringNotNull(regisAcc.getText()) && this.control.stringNotNull(regisPass.getText())){
                 if (this.model.loginAcct(regisAcc.getText(), regisPass.getText())){
                     this.getSpecificScene("menu");
+                    this.createGreetingWindow();
                 }
                 else {
+                    warningLabel.setTextFill(Color.ORANGERED);
                     warningLabel.setText("<!> Account is not found!");
                     warningLabel.setVisible(true);
                 }
             } else {
+                warningLabel.setTextFill(Color.ORANGERED);
                 warningLabel.setText("<!> fill in all box");
                 warningLabel.setVisible(true);
             }
@@ -307,6 +348,7 @@ public class AppView {
     }
 
     void createMenuScreen(){
+        // object
         Label titleLabel = this.showTitleTemplate();
 
         int paddingTop = 30;
@@ -318,6 +360,7 @@ public class AppView {
     }
     
     // all animations
+
     void buttonAnimation(Button button){
         button.setStyle("-fx-background-color: #7AB2D3");
         button.setTextFill(Color.WHITE);
