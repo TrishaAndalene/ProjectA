@@ -7,7 +7,8 @@ public class _init_ extends Application{
 
     // attributes static
     static AppModel menu = new AppModel();
-    static AppView view = new AppView();
+    static AppController control = new AppController(menu);
+    static AppView view = new AppView(menu, control);
 
     public static void main(String[] args) {
 
