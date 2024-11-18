@@ -48,6 +48,18 @@ public class AppModel{
         System.out.println(bAcct);
     }
 
+    // login method
+    public boolean loginAcct(String name, String password){
+        for(User u : this.users){
+            if (name.equals(u.userName) && (password.equals(u.passWord))){
+                System.out.println("login success");
+                return true;
+            }
+        }
+        System.out.println("login failed");
+        return false;
+    }
+
     // methods list show template only
 
     public void showRegistration(){
