@@ -18,10 +18,16 @@ public class _init_ extends Application{
 
     @Override
     public void start(Stage primaryStage){
+
+        // setting the value to be used globally in view
+        view.primaryStage = primaryStage;
+
         primaryStage.setTitle("Project A");
         // show scene
         primaryStage.setScene(view.getRegisScene());
         primaryStage.show();
+
+        view.createAccountManagerScreen();
 
     }
 };
