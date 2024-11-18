@@ -20,10 +20,14 @@ public class AppView {
 
     public HashMap<String, Scene> scenes;
     protected Stage primaryStage;
+    protected AppModel model;
+    protected AppController control;
 
-    public AppView(){
+    public AppView(AppModel model, AppController control){
         this.scenes = new HashMap<>();
         this.primaryStage = null;
+        this.model = model;
+        this.control = control;
 
         // trigger to for scenes
         this.createRegisScreen();
@@ -133,16 +137,22 @@ public class AppView {
 
         // textfield change 
         regisAge.textProperty().addListener((observable) -> {
-            acceptAge.setText("✔   ");
-            acceptAge.setTextFill(Color.FORESTGREEN);
+            if (this.control.stringNotNull(regisAge.getText()) && this.control.realInt(regisAge.getText())){
+                acceptAge.setText("✔   ");
+                acceptAge.setTextFill(Color.FORESTGREEN);
+            };
         });
         regisAcc.textProperty().addListener((observable) -> {
-            acceptName.setText("✔   ");
-            acceptName.setTextFill(Color.FORESTGREEN);
+            if (this.control.stringNotNull(regisAcc.getText())){
+                acceptName.setText("✔   ");
+                acceptName.setTextFill(Color.FORESTGREEN);
+            };
         });
         regisPass.textProperty().addListener((observable) -> {
-            acceptPass.setText("✔   ");
-            acceptPass.setTextFill(Color.FORESTGREEN);
+            if (this.control.stringNotNull(regisPass.getText())){
+                acceptPass.setText("✔   ");
+                acceptPass.setTextFill(Color.FORESTGREEN);
+            };
         });
   
         Label accountType = new Label("Account type:   ");
@@ -242,12 +252,16 @@ public class AppView {
 
         // textfield check
         regisAcc.textProperty().addListener((observable) -> {
-            acceptName.setText("✔   ");
-            acceptName.setTextFill(Color.FORESTGREEN);
+            if (this.control.stringNotNull(regisAcc.getText())){
+                acceptName.setText("✔   ");
+                acceptName.setTextFill(Color.FORESTGREEN);
+            };
         });
         regisPass.textProperty().addListener((observable) -> {
-            acceptPass.setText("✔   ");
-            acceptPass.setTextFill(Color.FORESTGREEN);
+            if (this.control.stringNotNull(regisPass.getText())){
+                acceptPass.setText("✔   ");
+                acceptPass.setTextFill(Color.FORESTGREEN);
+            };
         });
   
   
