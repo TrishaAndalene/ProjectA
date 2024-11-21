@@ -2,6 +2,8 @@
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.TabPane.TabClosingPolicy;
+import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -9,13 +11,17 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.scene.image.ImageView;
 
+import java.io.FilterInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 // ---------------------------- JAVA LIBRARY ----------------------------
 import java.util.*;
 
 public class AppView {
     
-    final static int ScreenWidth = 500;
+    final static int ScreenWidth = 700;
     final static int ScreenHeight = 450;
 
     public HashMap<String, Scene> scenes;
@@ -32,7 +38,12 @@ public class AppView {
         // trigger to for scenes
         this.createRegisScreen();
         this.createLoginScreen();
-        this.createMenuScreen();
+        try {
+            this.createMenuScreen();
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     // only static for now
@@ -169,12 +180,18 @@ public class AppView {
             if (this.control.stringNotNull(regisAcc.getText())){
                 acceptName.setText("✔   ");
                 acceptName.setTextFill(Color.FORESTGREEN);
+            } else {
+                acceptName.setText("✘   ");
+                acceptName.setTextFill(Color.RED);
             };
         });
         regisPass.textProperty().addListener((observable) -> {
             if (this.control.stringNotNull(regisPass.getText())){
                 acceptPass.setText("✔   ");
                 acceptPass.setTextFill(Color.FORESTGREEN);
+            } else {
+                acceptPass.setText("✘   ");
+                acceptPass.setTextFill(Color.RED);
             };
         });
   
@@ -305,12 +322,18 @@ public class AppView {
             if (this.control.stringNotNull(regisAcc.getText())){
                 acceptName.setText("✔   ");
                 acceptName.setTextFill(Color.FORESTGREEN);
+            } else {
+                acceptName.setText("✘   ");
+                acceptName.setTextFill(Color.RED);
             };
         });
         regisPass.textProperty().addListener((observable) -> {
             if (this.control.stringNotNull(regisPass.getText())){
                 acceptPass.setText("✔   ");
                 acceptPass.setTextFill(Color.FORESTGREEN);
+            } else {
+                acceptPass.setText("✘   ");
+                acceptPass.setTextFill(Color.RED);
             };
         });
   
@@ -347,13 +370,50 @@ public class AppView {
         this.scenes.put("login", new Scene(root, ScreenWidth, ScreenHeight));
     }
 
-    void createMenuScreen(){
-        // object
+    void createMenuScreen() throws FileNotFoundException{
+        // Label and Logo
         Label titleLabel = this.showTitleTemplate();
+        titleLabel.setTextFill(Color.WHITE);
+        
+        FileInputStream filename = new FileInputStream("C:\\Users\\user\\Pictures\\Saved Pictures\\brand.png");
+        Image image = new Image(filename);
+
+        ImageView imgView = new ImageView(image);
+        imgView.setFitHeight(100);
+        imgView.setFitWidth(100);
+        imgView.setPreserveRatio(true);
+        titleLabel.setGraphic(imgView);
+
+        imgView.setTranslateX(-20);
+        imgView.setTranslateY(10);
+        titleLabel.setTranslateY(-10);
+
+        //Tabs for Customer Options
+        TabPane customerOptions = new TabPane();
+        
+        //Tabs
+        Tab catalogue = new Tab("Catalogue");
+        Tab shoppingCart = new Tab("Shopping Cart");
+        Tab profile = new Tab("Profile");
+        Tab logOut = new Tab("Log Out");
+
+        //Tab addition
+        customerOptions.getTabs().addAll(catalogue, shoppingCart, profile, logOut);
+        
+        customerOptions.setTabMinWidth(ScreenWidth/4.5);
+        customerOptions.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+        
+
+        // Layout structure
+        HBox headerBox = new HBox();
+        headerBox.getChildren().addAll(titleLabel);
+        headerBox.setAlignment(Pos.TOP_CENTER);
+        headerBox.setStyle("-fx-background-color: black");
+        headerBox.setPrefHeight(90);
 
         int paddingTop = 30;
-        VBox root = new VBox(paddingTop);
-        root.getChildren().addAll(titleLabel);
+        VBox root = new VBox();
+        root.getChildren().addAll(headerBox, customerOptions);
         root.setAlignment(Pos.TOP_CENTER);
 
         this.scenes.put("menu", new Scene(root, ScreenWidth, ScreenHeight));
@@ -385,7 +445,7 @@ public class AppView {
 
     // accesor for all scenes
     public Scene getRegisScene(){
-        return this.scenes.get("register");
+        return this.scenes.get("menu");
     }
 
     public void getSpecificScene(String key){
