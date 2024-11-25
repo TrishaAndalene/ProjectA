@@ -1,4 +1,6 @@
 // ------------------------- JAVAFX LIBRARY ---------------------------
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -9,6 +11,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.TilePane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.image.ImageView;
@@ -19,6 +22,8 @@ import java.io.FileNotFoundException;
 // ---------------------------- JAVA LIBRARY ----------------------------
 import java.util.*;
 
+import javax.swing.text.TableView.TableRow;
+
 public class AppView {
     
     final static int ScreenWidth = 700;
@@ -28,6 +33,7 @@ public class AppView {
     protected Stage primaryStage;
     protected AppModel model;
     protected AppController control;
+    int count;
 
     public AppView(AppModel model, AppController control){
         this.scenes = new HashMap<>();
@@ -149,6 +155,94 @@ public class AppView {
 
         // show the new window
         greetings.show();
+    }
+
+    public void createProductWindow(Product item) throws FileNotFoundException{
+
+        // stage
+        Stage itemDetailStage = new Stage();
+        itemDetailStage.setTitle("Item description");
+
+        Label titleLabel = this.showTitleTemplate();
+
+        // Logo
+        
+        FileInputStream filename = new FileInputStream("C:\\Users\\user\\OneDrive - UTS\\UTS Diploma Material\\Programming 2\\Project B\\polar_brand.png");
+        Image image = new Image(filename);
+
+        ImageView imgView = new ImageView(image);
+        imgView.setFitHeight(80);
+        imgView.setFitWidth(80);
+        imgView.setPreserveRatio(true);
+
+        titleLabel.setGraphic(imgView);
+        this.setLabelFont(titleLabel, 10);
+
+        // product printing
+        Label itemName = new Label(item.getName().getValue());
+        this.setLabelFont(itemName, 14);
+
+        Label price = new Label("Selling price: A$" + item.getPrice().getValue());
+        this.setLabelFont(price, 14);
+
+        Label stock = new Label("Stock:               " + item.getStock().getValue());
+        this.setLabelFont(stock, 14);
+
+        Label sellerName = new Label("Seller:           NULL");
+        this.setLabelFont(sellerName, 14);
+
+        // button
+        this.count = 0;
+
+        Button plus = new Button("+");
+
+        Button minus = new Button("-");
+
+        Label quantity = new Label("0");
+
+        plus.setOnAction(e -> {
+            if (count < item.getStock().getValue()){
+                count += 1;
+                quantity.setText("" + count);
+            } else {
+                // pass first
+            }
+        });
+
+        minus.setOnAction(e -> {
+            if (count != 0){
+                count -= 1;
+                quantity.setText("" + count);
+            } else {
+                // pass first
+            }
+        });
+
+        Button addCart = new Button("Add to Cart");
+
+        // layouting
+
+        VBox itemDetails = new VBox();
+        itemDetails.getChildren().addAll(itemName, price, stock, sellerName);
+        itemDetails.setAlignment(Pos.TOP_LEFT);
+        itemDetails.setTranslateX(80);
+        itemDetails.setTranslateY(15);
+
+        HBox buttons = new HBox();
+        buttons.getChildren().addAll(minus, quantity, plus, addCart);
+        buttons.setSpacing(20);
+        buttons.setTranslateY(40);
+        buttons.setAlignment(Pos.CENTER);
+
+        VBox root = new VBox();
+        root.getChildren().addAll(titleLabel, itemDetails, buttons);
+
+        // new window
+        itemDetailStage.setScene(new Scene(root, 350, 250));
+
+        // show the new window
+        itemDetailStage.show();
+
     }
 
     // create all pages/scenes
@@ -375,7 +469,7 @@ public class AppView {
         Label titleLabel = this.showTitleTemplate();
         titleLabel.setTextFill(Color.WHITE);
         
-        FileInputStream filename = new FileInputStream("C:\\Users\\user\\Pictures\\Saved Pictures\\brand.png");
+        FileInputStream filename = new FileInputStream("C:\\Users\\user\\OneDrive - UTS\\UTS Diploma Material\\Programming 2\\Project B\\brand.png");
         Image image = new Image(filename);
 
         ImageView imgView = new ImageView(image);
@@ -393,6 +487,8 @@ public class AppView {
         
         //Tabs
         Tab catalogue = new Tab("Catalogue");
+        catalogue.setContent(this.createCatalogueRootScene());
+
         Tab shoppingCart = new Tab("Shopping Cart");
         Tab profile = new Tab("Profile");
         Tab logOut = new Tab("Log Out");
@@ -419,6 +515,91 @@ public class AppView {
         this.scenes.put("menu", new Scene(root, ScreenWidth, ScreenHeight));
     }
     
+    // create all tabbing panes scene
+    VBox createCatalogueRootScene(){
+
+        // button left
+        String[] priceFilter = {"Highest to Lowest", "Lowest to Highest"};
+        ComboBox priceSort = new ComboBox(FXCollections.observableArrayList(priceFilter));
+        priceSort.getSelectionModel().select(0);
+
+        // button right
+        String[] categoryFilter = {"ANY", "FOOD", "BEVERAGE", "HOMEWARE", "ELECTRONIC", "TOYS", "FASHION", "OFFICE", "EVENT", "BATHROOOM"};
+        ComboBox categorySort = new ComboBox(FXCollections.observableArrayList(categoryFilter));
+        categorySort.getSelectionModel().select(0);
+
+        // create the platform
+        TilePane buttonLeftPlatform = new TilePane(priceSort);
+        TilePane buttonRightPlatform = new TilePane(categorySort);
+
+        // create layout
+        //Buttons
+        HBox priceBox = new HBox();
+        priceBox.getChildren().addAll(buttonLeftPlatform);
+        priceBox.setTranslateX(30);
+        priceBox.setAlignment(Pos.TOP_LEFT);
+
+        HBox categoryBox = new HBox();
+        categoryBox.getChildren().addAll(buttonRightPlatform);
+        categoryBox.setAlignment(Pos.TOP_RIGHT);
+        categoryBox.setTranslateX(90);
+
+        HBox buttonBox = new HBox();
+        buttonBox.getChildren().addAll(priceBox, categoryBox);
+        buttonBox.setSpacing(100);
+        buttonBox.setTranslateY(20);
+        
+        //Listing items from catalogue
+        TableView<Product> catalogue = new TableView<>();
+
+        //columns and their resizing
+        TableColumn<Product, String> productNameCol = new TableColumn<>("Products");
+        productNameCol.setMinWidth(ScreenWidth/3);
+        
+        TableColumn<Product, Double> productPriceCol = new TableColumn<>("Price (A$)");
+        productPriceCol.setMinWidth(ScreenWidth/3);
+
+        TableColumn<Product, Integer> productStockCol = new TableColumn<>("Stock");
+        productStockCol.setMinWidth(ScreenWidth/3);
+        productStockCol.setSortable(false);
+        
+        productNameCol.setCellValueFactory(cellData -> cellData.getValue().getName());
+        productPriceCol.setCellValueFactory(cellData -> cellData.getValue().getPrice().asObject());
+        productStockCol.setCellValueFactory(cellData -> cellData.getValue().getStock().asObject());
+
+        catalogue.getColumns().addAll(productNameCol, productPriceCol, productStockCol);
+        catalogue.setPrefSize(ScreenWidth, 300);
+        
+        
+        catalogue.setOnMouseClicked(e -> {
+            Product selectedProduct = catalogue.getSelectionModel().getSelectedItem();
+            try {
+                this.createProductWindow(selectedProduct);
+            } catch (FileNotFoundException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+        });
+
+        // sample data
+        ObservableList<Product> sampleData = FXCollections.observableArrayList(
+                new Product("Horse", 500, Category.ELECTRONIC, 4),
+                new Product("Sheep", 200, Category.BATHROOOM, 2),
+                new Product("Cow", 400, Category.EVENT, 7));
+        
+        // set view table
+        catalogue.setItems(sampleData);
+        catalogue.setTranslateY(30);
+
+        VBox root = new VBox();
+        root.setPrefWidth(700);
+        root.setPrefHeight(350);
+        root.getChildren().addAll(buttonBox, catalogue);
+
+        return root;
+
+    }
+
     // all animations
 
     void buttonAnimation(Button button){
