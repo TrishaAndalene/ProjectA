@@ -570,15 +570,17 @@ public class AppView {
         catalogue.getColumns().addAll(productNameCol, productPriceCol, productStockCol);
         catalogue.setPrefSize(ScreenWidth, 300);
         
-        
         catalogue.setOnMouseClicked(e -> {
             Product selectedProduct = catalogue.getSelectionModel().getSelectedItem();
+            catalogue.getSelectionModel().clearSelection();
             try {
-                this.createProductWindow(selectedProduct);
+                if (selectedProduct != null){
+                    this.createProductWindow(selectedProduct);
+                }
             } catch (FileNotFoundException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
-            }
+        }
         });
 
         // sample data
