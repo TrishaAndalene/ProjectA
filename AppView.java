@@ -235,16 +235,23 @@ public class AppView {
 
         addCart.setOnAction(e -> {
             try{
-                this.model.checkIfBuyer().addToCart(item, count);
-                System.out.println(this.model.checkIfBuyer().cart);
-
                 Purchase p = new Purchase(item, count);
+                if (this.count != 0){
+                    try {
+                        int index = this.model.checkIfBuyer().checkPurchase(item.getName().getValue(), count);
+                        System.out.println("ok");
+                        this.buyerCart.set(index, p);
+                    } catch (Exception w){
+                        System.err.println(w);
+                        this.model.checkIfBuyer().addToCart(item, count);
+                        System.out.println(this.model.checkIfBuyer().cart);
 
-                this.buyerCart.add(p);
-                int numItem = this.itemCount.getValue();
-                this.itemCount.set(numItem += count);
-                double cost = this.totalPriceCost.getValue();
-                this.totalPriceCost.set(cost += p.calculatePurchase().getValue());
+                        this.buyerCart.add(p);
+                    }
+                }
+                this.itemCount.set(this.model.checkIfBuyer().checkCart());
+                this.totalPriceCost.set(this.model.checkIfBuyer().getTotalPriceCart());
+                itemDetailStage.close();
             } catch (Exception e1){
                 System.out.println(e1);
             }
@@ -275,6 +282,54 @@ public class AppView {
 
     }
 
+    public void createDeleteWindow(Purchase item){
+        Stage deleteWindow = new Stage();
+        deleteWindow.setTitle("Deletion Form");
+
+        Label deleteQuestion = new Label("Do you want to delete this from your cart?");
+        this.setLabelFont(deleteQuestion, 16);
+        
+        Label warningLabel = new Label("<!> please make sure of the item");
+        this.setLabelFont(warningLabel, 10);
+        warningLabel.setTextFill(Color.ORANGERED);
+
+        Button yesButton = new Button("Yes");
+        yesButton.setOnAction(e -> {
+            this.model.checkIfBuyer().removeFromCart(item);
+            this.buyerCart.remove(item);
+            this.itemCount.set(this.model.checkIfBuyer().checkCart());
+            this.totalPriceCost.set(this.model.checkIfBuyer().getTotalPriceCart());
+            deleteWindow.close();
+        });
+
+        Button noButton = new Button("No");
+        noButton.setOnAction(e -> {
+            deleteWindow.close();
+        });
+
+        this.multipleButtonAnimation(yesButton, noButton);
+
+        // box creation
+        HBox btnBox = new HBox();
+        btnBox.getChildren().addAll(yesButton, noButton);
+        btnBox.setAlignment(Pos.CENTER);
+        btnBox.setSpacing(50);
+        
+        VBox windowBox = new VBox();
+        windowBox.getChildren().addAll(deleteQuestion, warningLabel, btnBox);
+        windowBox.setAlignment(Pos.CENTER);
+        windowBox.setSpacing(20);
+
+        // new window
+        deleteWindow.setScene(new Scene(windowBox, 350, 150));
+
+        deleteWindow.setOnCloseRequest(e -> {
+            javafx.application.Platform.exit();
+        });
+
+        // show the new window
+        deleteWindow.show();
+    }
 
     // create all pages/scenes
     void createRegisScreen(){
@@ -658,6 +713,15 @@ public class AppView {
 
         cart.getColumns().addAll(productNameCol, productPriceQuantityCol, totalPriceCol);
         cart.setMaxSize(302, 300);
+
+        // table function
+        cart.setOnMouseClicked(e -> {
+            Purchase selectedProduct = cart.getSelectionModel().getSelectedItem();
+            cart.getSelectionModel().clearSelection();
+            if (selectedProduct != null){
+                this.createDeleteWindow(selectedProduct);
+            }
+        });
 
         // sample data
         System.out.print("okay");
