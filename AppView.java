@@ -577,7 +577,10 @@ public class AppView {
 
         Tab shoppingCart = new Tab("Shopping Cart");
         shoppingCart.setContent(this.createCartRootScene());
+
         Tab profile = new Tab("Profile");
+        profile.setContent(this.createProfileRootScene());
+
         Tab logOut = new Tab("Log Out");
 
         //Tab addition
@@ -770,6 +773,47 @@ public class AppView {
         return root;
     }
 
+    HBox createProfileRootScene() throws FileNotFoundException{
+        
+        // left
+        FileInputStream filename = new FileInputStream("C:\\Users\\user\\OneDrive - UTS\\UTS Diploma Material\\Programming 2\\Project B\\placeholderProfile.jpg");
+        Image image = new Image(filename);
+
+        ImageView imgView = new ImageView(image);
+        imgView.setFitWidth(200);
+        imgView.setFitHeight(250);
+        imgView.setTranslateX(-20);
+
+        //right
+        Label profileLabel = new Label("Account Profile");
+        this.setLabelFont(profileLabel, 20);
+
+        Label name = new Label("Username: " + this.model.currentBuyer.getUserName());
+        this.setLabelFont(name, 15);
+
+        Label password = new Label("Password: " + this.model.currentBuyer.getPasswordHash());
+        this.setLabelFont(password, 15);
+
+        Label accountType = new Label("Account Type: " + this.model.currentBuyer.getClass().getName());
+        this.setLabelFont(accountType, 15);
+
+        Button edit = new Button("Edit");
+        edit.setMinWidth(280);
+        this.buttonAnimation(edit);
+
+        // layout
+        VBox profileDetails = new VBox();
+        profileDetails.getChildren().addAll(profileLabel, name, password, accountType, edit);
+        profileDetails.setAlignment(Pos.CENTER_LEFT);
+        profileDetails.setSpacing(20);
+        profileDetails.setTranslateX(30);
+
+        HBox root = new HBox();
+        root.getChildren().addAll(imgView, profileDetails);
+        root.setAlignment(Pos.CENTER);
+        
+        return root;
+    }
     // all animations
 
     void buttonAnimation(Button button){
