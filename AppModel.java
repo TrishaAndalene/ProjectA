@@ -168,6 +168,7 @@ class Buyer extends User {
 
     //check Cart of customer
     int checkCart(){
+        this.cartTotalItem = 0;
         if (this.cart.size() != 0){
             for (Purchase p : this.cart){
                 this.cartTotalItem += p.quantity.getValue();
@@ -187,6 +188,18 @@ class Buyer extends User {
         return 0;
     }
 
+    int checkPurchase(String name, int count){
+        if (this.cart.size() != 0){
+            for (Purchase p : this.cart){
+                if(name.equals(p.product.getName().getValue())){
+                    p.quantity.set(count);
+                    return this.cart.indexOf(p);
+                }
+            }
+        }
+        return -1;
+    }
+
     void addToCart(Product p, int quantity){
         for (Purchase pur : this.cart){
             if (pur.product == p){
@@ -197,11 +210,17 @@ class Buyer extends User {
     }
 
     void removeFromCart(Purchase purchase){
-        this.cart.remove(purchase);
-        checkCart();
+        for (int i = 0; i< this.cart.size(); i++){
+            Purchase p = this.cart.get(i);
+            if (p.product.getName().equals(purchase.product.getName())){
+                this.cart.remove(p);
+            }
+            System.out.println(p);
+        }
     }
 
     double getTotalPriceCart(){
+        this.totalCostCart = 0;
         if (this.cart.size() != 0){
             for (Purchase p : this.cart){
                 this.totalCostCart += (p.calculatePurchase().getValue());
