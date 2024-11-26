@@ -794,16 +794,26 @@ public class AppView {
         Label password = new Label("Password: " + this.model.currentBuyer.getPasswordHash());
         this.setLabelFont(password, 15);
 
+        Label balance = new Label("Balance: A$" + this.model.currentBuyer.getBalance());
+        this.setLabelFont(balance, 15);
+
         Label accountType = new Label("Account Type: " + this.model.currentBuyer.getClass().getName());
         this.setLabelFont(accountType, 15);
 
+        Button addBalance = new Button("+");
+        addBalance.setTranslateY(-5);
+        addBalance.setTranslateX(10);
+
         Button edit = new Button("Edit");
         edit.setMinWidth(280);
-        this.buttonAnimation(edit);
+        this.multipleButtonAnimation(addBalance, edit);
 
         // layout
+        HBox balanceBtn = new HBox();
+        balanceBtn.getChildren().addAll(balance, addBalance);
+
         VBox profileDetails = new VBox();
-        profileDetails.getChildren().addAll(profileLabel, name, password, accountType, edit);
+        profileDetails.getChildren().addAll(profileLabel, name, password, balanceBtn, accountType, edit);
         profileDetails.setAlignment(Pos.CENTER_LEFT);
         profileDetails.setSpacing(20);
         profileDetails.setTranslateX(30);
