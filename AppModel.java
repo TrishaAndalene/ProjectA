@@ -121,6 +121,14 @@ abstract class User {
         return this.id;
     }
 
+    public String getPasswordHash(){
+        String hash = "";
+        for (char c: this.passWord.toCharArray()){
+            hash += "*";
+        }
+        return hash;
+    }
+
     //setters
     void editUserName(String userName){
         this.userName = userName;
