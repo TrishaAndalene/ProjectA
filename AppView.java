@@ -1,4 +1,6 @@
 // ------------------------- JAVAFX LIBRARY ---------------------------
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -33,13 +35,24 @@ public class AppView {
     protected Stage primaryStage;
     protected AppModel model;
     protected AppController control;
+    protected ObservableList<Purchase> buyerCart;
+    protected Label itemNum, itemCost;
     int count;
+    protected SimpleIntegerProperty itemCount;
+    protected SimpleDoubleProperty totalPriceCost;
 
     public AppView(AppModel model, AppController control){
         this.scenes = new HashMap<>();
         this.primaryStage = null;
         this.model = model;
         this.control = control;
+
+        //misc attribute
+        this.buyerCart = FXCollections.observableArrayList(this.model.checkIfBuyer().cart);
+        this.itemNum = new Label("");
+        this.itemCost = new Label("");
+        this.itemCount = new SimpleIntegerProperty(0);
+        this.totalPriceCost = new SimpleDoubleProperty(0);
 
         // trigger to for scenes
         this.createRegisScreen();
@@ -67,8 +80,8 @@ public class AppView {
         return titleLabel;
     }
 
-    // create new windows
-    public void createAccountManagerScreen(){
+     // create new windows
+     public void createAccountManagerScreen(){
 
         Stage accountStart = new Stage();
         accountStart.setTitle("Account Manager");
@@ -192,13 +205,13 @@ public class AppView {
         this.setLabelFont(sellerName, 14);
 
         // button
-        this.count = 0;
+        this.count = this.model.checkIfBuyer().checkCount(item.getName().getValue());
 
         Button plus = new Button("+");
 
         Button minus = new Button("-");
 
-        Label quantity = new Label("0");
+        Label quantity = new Label(""+this.count);
 
         plus.setOnAction(e -> {
             if (count < item.getStock().getValue()){
@@ -219,6 +232,23 @@ public class AppView {
         });
 
         Button addCart = new Button("Add to Cart");
+
+        addCart.setOnAction(e -> {
+            try{
+                this.model.checkIfBuyer().addToCart(item, count);
+                System.out.println(this.model.checkIfBuyer().cart);
+
+                Purchase p = new Purchase(item, count);
+
+                this.buyerCart.add(p);
+                int numItem = this.itemCount.getValue();
+                this.itemCount.set(numItem += count);
+                double cost = this.totalPriceCost.getValue();
+                this.totalPriceCost.set(cost += p.calculatePurchase().getValue());
+            } catch (Exception e1){
+                System.out.println(e1);
+            }
+        });
 
         // layouting
 
@@ -244,6 +274,7 @@ public class AppView {
         itemDetailStage.show();
 
     }
+
 
     // create all pages/scenes
     void createRegisScreen(){
@@ -490,6 +521,7 @@ public class AppView {
         catalogue.setContent(this.createCatalogueRootScene());
 
         Tab shoppingCart = new Tab("Shopping Cart");
+        shoppingCart.setContent(this.createCartRootScene());
         Tab profile = new Tab("Profile");
         Tab logOut = new Tab("Log Out");
 
@@ -600,6 +632,78 @@ public class AppView {
 
         return root;
 
+    }
+
+    HBox createCartRootScene(){
+
+        //Listing items from catalogue
+        TableView<Purchase> cart = new TableView<>();
+
+        //columns and their resizing
+        TableColumn<Purchase, String> productNameCol = new TableColumn<>("Products");
+        productNameCol.setMinWidth(100);
+        productNameCol.setSortable(false);
+        
+        TableColumn<Purchase, Integer> productPriceQuantityCol = new TableColumn<>("Quantity");
+        productPriceQuantityCol.setMinWidth(100);
+        productPriceQuantityCol.setSortable(false);
+
+        TableColumn<Purchase, Double> totalPriceCol = new TableColumn<>("TotalPrice");
+        totalPriceCol.setMinWidth(100);
+        totalPriceCol.setSortable(false);
+        
+        productNameCol.setCellValueFactory(cellData -> cellData.getValue().product.getName());
+        productPriceQuantityCol.setCellValueFactory(cellData -> cellData.getValue().getQuantity().asObject());
+        totalPriceCol.setCellValueFactory(cellData -> cellData.getValue().calculatePurchase().asObject());
+
+        cart.getColumns().addAll(productNameCol, productPriceQuantityCol, totalPriceCol);
+        cart.setMaxSize(302, 300);
+
+        // sample data
+        System.out.print("okay");
+        
+        // set view table
+        cart.setItems(this.buyerCart);
+        cart.setMaxWidth(302);
+        cart.setTranslateY(10);
+        cart.setTranslateX(30);
+
+        // labels
+        Label branding = new Label("MyCart");
+        branding.setAlignment(Pos.CENTER);
+        branding.setTranslateX(105);
+        this.setLabelFont(branding, 18);
+
+        this.itemNum.textProperty().bind(this.itemCount.asString("Total item:  %d"));
+        this.setLabelFont(this.itemNum, 16);
+
+        this.itemCost.textProperty().bind(this.totalPriceCost.asString("Total price: %.2f"));
+        this.setLabelFont(this.itemCost, 16);
+
+        Label breakLine = new Label("_____________________________");
+        breakLine.setTranslateY(-20);
+        this.setLabelFont(breakLine, 16);
+
+        // function button
+        Button finalize = new Button("Finalize");
+        finalize.setMinWidth(280);
+        finalize.setTranslateY(-20);
+        this.buttonAnimation(finalize);
+
+        // layouting
+        VBox details = new VBox();
+        details.getChildren().addAll(branding, this.itemNum, this.itemCost, breakLine, finalize);
+        details.setTranslateX(80);
+        details.setTranslateY(50);
+        details.setSpacing(20);
+
+        HBox root = new HBox();
+        root.setPrefWidth(700);
+        root.setPrefHeight(350);
+        root.getChildren().addAll(cart, details);
+        root.setAlignment(Pos.CENTER_LEFT);
+
+        return root;
     }
 
     // all animations
