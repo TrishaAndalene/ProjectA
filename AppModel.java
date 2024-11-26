@@ -1,5 +1,9 @@
 // ------------------------- JAVA LIBRARY --------------------------
 import java.util.*;
+
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 //-------------------- INTERFACE SETTINGS -------------------------
 interface PageTrack{
 
@@ -29,9 +33,7 @@ public class AppModel{
         this.engineStatus = true;
         this.userOption = 0;
         this.users = new ArrayList<>();
-
-        // default item for base catalogue
-        ArrayList<Product> default_items = new ArrayList<>();
+        this.currentBuyer = new Buyer("admin", "12345");
     }
 
     // user creation method
@@ -52,7 +54,7 @@ public class AppModel{
     public boolean loginAcct(String name, String password){
         for(User u : this.users){
             if (name.equals(u.userName) && (password.equals(u.passWord))){
-                System.out.println("login success");
+                this.currentBuyer = u;
                 return true;
             }
         }
@@ -60,64 +62,26 @@ public class AppModel{
         return false;
     }
 
-    // methods list show template only
-
-    public void showRegistration(){
-        while (this.engineStatus){
-            
-            // create the user (I think we can add an final admin account)
-            System.out.println("ACCOUNT REGISTRATION");
-            System.out.println();
-            System.out.print("Username: ");
-            String name = In.nextLine();
-            System.out.print("Current age: ");
-            int age = In.nextInt();
-
-            if (age < 18){
-                System.out.println("Please come back when you already 18");
-                break;
-            }
-
-            System.out.print("Are you seller? (Y/N) ");
-            String option = In.nextLine();
-            if (option.equalsIgnoreCase("N")){
-                try{
-                    System.out.print("Input your password : ");
-                    String password = In.nextLine();
-                    this.currentBuyer = new Buyer(name, password);
-                    System.out.println("ok");
-                    this.showMainScreen();
-
-                } catch (Exception e){
-                    System.out.println("Session closed, please restart the system");
-                    break;
-                }
-            }
-            
+    // complete till here
+    public Buyer checkIfBuyer(){
+        try {
+            return (Buyer) this.currentBuyer;
+        } catch (Exception w){
+            return null;
         }
     }
 
-    public void showMainScreen(){
-
-        while (this.engineStatus){
-
-            System.out.println("How may I help you for today?");
-            System.out.println();
-            System.out.println("[1] Browse the catalogue");
-            if (this.currentBuyer instanceof Buyer){
-                System.out.println("[2] Check your cart");
-                System.out.println("[3] Update your balance");
-            } else {
-                System.out.println("[2] Check your item stock");
-                System.out.println("[3] Onhold Deposit");
-            }
-            System.out.println("[4] Personal settings");
-            System.out.println("[5] Search for specific item");
-            System.out.println("[E] Close the system");
-            System.out.print("Answer: ");
-            int option = In.nextInt();
-        } 
+    public Seller checkIfSeller(){
+        try {
+            return (Seller) this.currentBuyer;
+        } catch (Exception e){
+            return null;
+        }
     }
+
+    // methods list show template only
+    
+    
     // page settings for balance
 }
 
@@ -188,7 +152,9 @@ abstract class User {
 //CUSTOMER--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class Buyer extends User {
     //Need 2 arrays for user's shopping cart and previous pruchases
-    ArrayList<Purchase> cart;
+    List<Purchase> cart;
+    int cartTotalItem;
+    double totalCostCart;
     ArrayList<Purchase> previousPurchases;
 
     //constructor for customer
@@ -196,27 +162,52 @@ class Buyer extends User {
         super(userName, passWord);
         this.cart = new ArrayList<>();
         this.previousPurchases = new ArrayList<>();
+        this.cartTotalItem = 0;
+        this.totalCostCart = 0;
     }
 
     //check Cart of customer
-    void checkCart(){
-        if(this.cart.size() == 0){
-            System.out.println("Cart is Empty.");
-        } else {
-            System.out.println(this.userName + "'s Cart:");
-            for (Purchase p : cart){
-                System.out.println(p);
+    int checkCart(){
+        if (this.cart.size() != 0){
+            for (Purchase p : this.cart){
+                this.cartTotalItem += p.quantity.getValue();
             }
         }
+        return this.cartTotalItem;
     }
 
-    void addToCart(Purchase purchase){
-        this.cart.add(purchase);
+    int checkCount(String name){
+        if (this.cart.size() != 0){
+            for (Purchase p : this.cart){
+                if(name.equals(p.product.getName().getValue())){
+                    return p.quantity.getValue();
+                }
+            }
+        }
+        return 0;
+    }
+
+    void addToCart(Product p, int quantity){
+        for (Purchase pur : this.cart){
+            if (pur.product == p){
+                break;
+            }
+        }
+        this.cart.add(new Purchase(p, quantity));
     }
 
     void removeFromCart(Purchase purchase){
         this.cart.remove(purchase);
         checkCart();
+    }
+
+    double getTotalPriceCart(){
+        if (this.cart.size() != 0){
+            for (Purchase p : this.cart){
+                this.totalCostCart += (p.calculatePurchase().getValue());
+            }
+        }
+        return this.totalCostCart;
     }
 
     @Override
@@ -235,7 +226,7 @@ class Buyer extends User {
         this.previousPurchases.add(purchase);
     }
 
-    ArrayList<Purchase> getCart(){
+    List<Purchase> getCart(){
         return this.cart;
     }
 
@@ -316,20 +307,20 @@ enum Category{
 //products
 class Product {
     //attributes
-    private double price;
-    String name;
+    private SimpleDoubleProperty price;
+    public SimpleStringProperty itemName;
     Seller seller;
-    private int stock;
+    private SimpleIntegerProperty stock;
     private Category category;
     //Product IDs
     private static int productId = 0;
     int id;
 
-    Product(String name, double price, Category category, int stock, Seller seller){
-        this.name = name;
-        this.price = price;
-        this.stock = stock;
-        this.seller = seller;
+    Product(String name, double price, Category category, int stock){
+        this.itemName = new SimpleStringProperty(name);
+        this.price = new SimpleDoubleProperty(price);
+        this.stock =  new SimpleIntegerProperty(stock);
+        this.seller = null;
         this.category = category;
         //Product IDs
         this.id = Product.productId;
@@ -348,26 +339,6 @@ class Product {
         System.out.println("[7] Office");
         System.out.println("[8] Event");
         System.out.println("[9] Bathroom");
-        // int choice = ModIn.getInteger("Enter your Product's Category (1 - 9)", 0, 9);
-        // if (choice == 1){
-        //     this.updateCategory(Category.FOOD);
-        // } else if (choice == 2){
-        //     this.updateCategory(Category.BEVERAGE);
-        // } else if (choice == 3){
-        //     this.updateCategory(Category.HOMEWARE);
-        // } else if (choice == 4){
-        //     this.updateCategory(Category.ELECTRONIC);
-        // } else if (choice == 5){
-        //     this.updateCategory(Category.TOYS);
-        // } else if (choice == 6){
-        //     this.updateCategory(Category.FASHION);
-        // } else if (choice == 7){
-        //     this.updateCategory(Category.OFFICE);
-        // } else if (choice == 8){
-        //     this.updateCategory(Category.EVENT);
-        // } else if (choice == 9){
-        //     this.updateCategory(Category.BATHROOOM);
-        // }
     }
 
     //menu for editing products
@@ -377,38 +348,26 @@ class Product {
         System.out.println("[2] Price");
         System.out.println("[3] Category");
         System.out.println("[4] Stock");
-        // int choice = ModIn.getInteger("Enter Choice: ", 0, 4);
-        // if (choice == 1){
-        //     this.updateName(ModIn.getString("Enter Product Name: "));
-        // } else if (choice == 2){
-        //     this.updatePrice(ModIn.getDouble("Enter Product Price: "));
-        // } else if (choice == 3){
-        //     this.updateCategory();
-        // } else if (choice == 4){
-        //     this.updateStock(ModIn.getInteger("Enter Product's Quantity"));
-        // }
     }
 
     //reduce stock
     public void subtractStock(int stock){
-        this.stock -= stock;
+        int stockNumber = this.stock.getValue(); 
+        stockNumber -= new SimpleIntegerProperty(stock).getValue();
+        this.stock.set(stockNumber);
     }
 
     //update values
     public void updateName(String newName){
-        this.name = newName;
+        this.itemName = new SimpleStringProperty(newName);
     }
 
     public void updatePrice(double newPrice){
-        this.price = newPrice;
+        this.price = new SimpleDoubleProperty(newPrice);
     }
 
     public void updateStock(int stock){
-        this.stock = stock;
-    }
-
-    public void reduceStock(int minStock){
-        this.stock -= minStock;
+        this.stock = new SimpleIntegerProperty(stock);
     }
 
     public void updateCategory(Category category){
@@ -416,15 +375,15 @@ class Product {
     }
 
     // getter
-    public String getName(){
-        return this.name;
+    public SimpleStringProperty getName(){
+        return this.itemName;
     }
 
-    public double getPrice(){
+    public SimpleDoubleProperty getPrice(){
         return this.price;
     }
 
-    public int getStock(){
+    public SimpleIntegerProperty getStock(){
         return this.stock;
     }
 
@@ -443,32 +402,23 @@ class Product {
     public Category getCategory(){
         return this.category;
     }
-
-    // string
-    public String toString(){
-        if (this.stock > 0){
-            return "Product UID [" + this.getProductID() + "] | Name: " + this.getName() + " | Price: A$ " + this.getPrice() + " | Stock: " + this.getStock() + " | Seller Name: " + this.getSellerName();
-        } else{
-            return "====SOLD OUT====| Product UID [" + this.getProductID() + "] | Name: " + this.getName() + " | Price: A$ " + this.getPrice() + " | Stock: " + this.getStock() + " | Seller Name: " + this.getSellerName();
-        }
-        
-    }
 }
+
 //Purchase Class (I don't like Hashmaps)-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //handles purchases in the user acct
 class Purchase {
     Product product;
-    int quantity;
+    SimpleIntegerProperty quantity;
 
     //basic constructor
     Purchase(Product product, int quantity){
         this.product = product;
-        this.quantity = quantity;
+        this.quantity = new SimpleIntegerProperty(quantity);
     }
 
     //pay for item
-    double calculatePurchase(){
-        double cost = this.product.getPrice()*quantity;
+    SimpleDoubleProperty calculatePurchase(){
+        SimpleDoubleProperty cost = new SimpleDoubleProperty(this.product.getPrice().getValue()*quantity.getValue());
         return cost;
     }
 
@@ -478,7 +428,7 @@ class Purchase {
     }
 
     public void setQuantity(int quantity) {
-        this.quantity = quantity;
+        this.quantity = new SimpleIntegerProperty(quantity);
     }
 
     //getters
@@ -486,7 +436,7 @@ class Purchase {
         return product;
     }
 
-    public int getQuantity() {
+    public SimpleIntegerProperty getQuantity() {
         return quantity;
     }
 
