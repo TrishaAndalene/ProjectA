@@ -1,6 +1,7 @@
 // ------------------------- JAVAFX LIBRARY ---------------------------
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -36,7 +37,7 @@ public class AppView {
     protected AppModel model;
     protected AppController control;
     protected ObservableList<Purchase> buyerCart;
-    protected Label itemNum, itemCost;
+    protected Label itemNum, itemCost, name, password, accountType, balance;
     int count;
     protected SimpleIntegerProperty itemCount;
     protected SimpleDoubleProperty totalPriceCost;
@@ -53,6 +54,10 @@ public class AppView {
         this.itemCost = new Label("");
         this.itemCount = new SimpleIntegerProperty(0);
         this.totalPriceCost = new SimpleDoubleProperty(0);
+        this.name = new Label();
+        this.password = new Label();
+        this.accountType = new Label();
+        this.balance = new Label();
 
         // trigger to for scenes
         this.createRegisScreen();
@@ -170,6 +175,82 @@ public class AppView {
         greetings.show();
     }
 
+    public void createUserVerificationWindow(){
+        Stage userVerif = new Stage();
+        userVerif.setTitle("User Verification");
+
+        Label title = new Label("User Verification Form");
+        this.setLabelFont(title, 16);
+
+        Label enterPass = new Label("Enter password:");
+        this.setLabelFont(enterPass, 14);
+
+        TextField password = new TextField();
+        password.setMaxWidth(150);
+
+        Button cont = new Button("Submit");
+        cont.setMinWidth(150);
+        this.buttonAnimation(cont);
+        cont.setOnAction(e -> {
+            if (this.model.currentBuyer.checkPassword(password.getText())){
+                this.createAddBalanceWindow();
+                userVerif.close();
+            }
+        });
+
+        // layout
+        VBox root = new VBox();
+        root.getChildren().addAll(title, enterPass, password, cont);
+        root.setAlignment(Pos.CENTER);
+        root.setSpacing(20);
+        
+        userVerif.setScene(new Scene(root, 250, 200));
+        userVerif.show();
+    }
+
+    public void createAddBalanceWindow(){
+
+        //stage
+        Stage addBalance = new Stage();
+        addBalance.setTitle("Balance editing");
+
+        // labelling
+        Label title = new Label("Balance Top-up");
+        this.setLabelFont(title, 16);
+
+        Label enterBalance = new Label("Enter top-up value");
+        this.setLabelFont(enterBalance, 14);
+
+        //Button for and textfield for adding balance
+        TextField balanceEntry = new TextField();
+        balanceEntry.setMaxWidth(150);
+
+        String[] paymentType = {"Card", "GiftCard", "Online banking"};
+        ComboBox paymentList = new ComboBox(FXCollections.observableArrayList(paymentType));
+        paymentList.getSelectionModel().select(0);
+
+        Button balanceButton = new Button("Add");
+        balanceButton.setMinWidth(150);
+        this.buttonAnimation(balanceButton);
+
+        //functionality
+        balanceButton.setOnAction(e -> {
+            this.model.checkIfBuyer().addBalance(this.control.convertStringToDouble(balanceEntry.getText()));
+            this.changeUser(this.model.currentBuyer);
+            addBalance.close();
+        });
+
+        //alignment
+        VBox root = new VBox();
+        root.getChildren().addAll(enterBalance, balanceEntry, paymentList, balanceButton);
+        root.setSpacing(20);
+        root.setAlignment(Pos.CENTER);
+
+        addBalance.setScene(new Scene(root, 250, 200));
+        addBalance.show();
+
+    }
+
     public void createProductWindow(Product item) throws FileNotFoundException{
 
         // stage
@@ -180,7 +261,7 @@ public class AppView {
 
         // Logo
         
-        FileInputStream filename = new FileInputStream("C:\\Users\\user\\OneDrive - UTS\\UTS Diploma Material\\Programming 2\\Project B\\polar_brand.png");
+        FileInputStream filename = new FileInputStream("polar_brand.png");
         Image image = new Image(filename);
 
         ImageView imgView = new ImageView(image);
@@ -286,8 +367,8 @@ public class AppView {
         Stage deleteWindow = new Stage();
         deleteWindow.setTitle("Deletion Form");
 
-        Label deleteQuestion = new Label("Do you want to delete this from your cart?");
-        this.setLabelFont(deleteQuestion, 16);
+        Label deleteQuestion = new Label("Do you want to delete \nthis from your cart?");
+        this.setLabelFont(deleteQuestion, 14);
         
         Label warningLabel = new Label("<!> please make sure of the item");
         this.setLabelFont(warningLabel, 10);
@@ -329,6 +410,40 @@ public class AppView {
 
         // show the new window
         deleteWindow.show();
+    }
+
+    public void createUpdateUsernameWindow(){
+        Stage updateName = new Stage();
+        updateName.setTitle("User Verification");
+
+        Label title = new Label("Update Username Form");
+        this.setLabelFont(title, 16);
+
+        Label enterName = new Label("Enter new username:");
+        this.setLabelFont(enterName, 14);
+
+        TextField username = new TextField();
+        username.setMaxWidth(150);
+
+        Button cont = new Button("Submit");
+        cont.setMinWidth(150);
+        this.buttonAnimation(cont);
+        cont.setOnAction(e -> {
+            if (this.control.stringNotNull(username.getText())){
+                this.model.currentBuyer.editUserName(username.getText());
+                this.changeUser(this.model.currentBuyer);
+                updateName.close();
+            }
+        });
+
+        // layout
+        VBox root = new VBox();
+        root.getChildren().addAll(title, enterName, username, cont);
+        root.setAlignment(Pos.CENTER);
+        root.setSpacing(20);
+        
+        updateName.setScene(new Scene(root, 250, 200));
+        updateName.show();
     }
 
     // create all pages/scenes
@@ -479,6 +594,7 @@ public class AppView {
             if (this.control.stringNotNull(regisAcc.getText()) && this.control.stringNotNull(regisPass.getText())){
                 if (this.model.loginAcct(regisAcc.getText(), regisPass.getText())){
                     this.getSpecificScene("menu");
+                    this.changeUser(this.model.currentBuyer);
                     this.createGreetingWindow();
                 }
                 else {
@@ -555,7 +671,7 @@ public class AppView {
         Label titleLabel = this.showTitleTemplate();
         titleLabel.setTextFill(Color.WHITE);
         
-        FileInputStream filename = new FileInputStream("C:\\Users\\user\\OneDrive - UTS\\UTS Diploma Material\\Programming 2\\Project B\\brand.png");
+        FileInputStream filename = new FileInputStream("brand.png");
         Image image = new Image(filename);
 
         ImageView imgView = new ImageView(image);
@@ -581,7 +697,7 @@ public class AppView {
         Tab profile = new Tab("Profile");
         profile.setContent(this.createProfileRootScene());
 
-        Tab logOut = new Tab("Log Out");
+        Tab logOut = new Tab("Customer Service");
 
         //Tab addition
         customerOptions.getTabs().addAll(catalogue, shoppingCart, profile, logOut);
@@ -776,7 +892,7 @@ public class AppView {
     HBox createProfileRootScene() throws FileNotFoundException{
         
         // left
-        FileInputStream filename = new FileInputStream("C:\\Users\\user\\OneDrive - UTS\\UTS Diploma Material\\Programming 2\\Project B\\placeholderProfile.jpg");
+        FileInputStream filename = new FileInputStream("placeholderProfile.jpg");
         Image image = new Image(filename);
 
         ImageView imgView = new ImageView(image);
@@ -788,32 +904,35 @@ public class AppView {
         Label profileLabel = new Label("Account Profile");
         this.setLabelFont(profileLabel, 20);
 
-        Label name = new Label("Username: " + this.model.currentBuyer.getUserName());
-        this.setLabelFont(name, 15);
+        this.setLabelFont(this.name, 15);
 
-        Label password = new Label("Password: " + this.model.currentBuyer.getPasswordHash());
-        this.setLabelFont(password, 15);
+        this.setLabelFont(this.password, 15);
 
-        Label balance = new Label("Balance: A$" + this.model.currentBuyer.getBalance());
-        this.setLabelFont(balance, 15);
+        this.setLabelFont(this.balance, 15);
 
-        Label accountType = new Label("Account Type: " + this.model.currentBuyer.getClass().getName());
-        this.setLabelFont(accountType, 15);
+        this.setLabelFont(this.accountType, 15);
 
         Button addBalance = new Button("+");
         addBalance.setTranslateY(-5);
         addBalance.setTranslateX(10);
+        addBalance.setOnAction(e -> {
+            this.createUserVerificationWindow();
+        });
 
         Button edit = new Button("Edit");
         edit.setMinWidth(280);
+        edit.setOnAction(e -> {
+            this.createUpdateUsernameWindow();
+        });
+
         this.multipleButtonAnimation(addBalance, edit);
 
         // layout
         HBox balanceBtn = new HBox();
-        balanceBtn.getChildren().addAll(balance, addBalance);
+        balanceBtn.getChildren().addAll(this.balance, addBalance);
 
         VBox profileDetails = new VBox();
-        profileDetails.getChildren().addAll(profileLabel, name, password, balanceBtn, accountType, edit);
+        profileDetails.getChildren().addAll(profileLabel, this.name, this.password, balanceBtn, this.accountType, edit);
         profileDetails.setAlignment(Pos.CENTER_LEFT);
         profileDetails.setSpacing(20);
         profileDetails.setTranslateX(30);
@@ -824,19 +943,39 @@ public class AppView {
         
         return root;
     }
+
+    //customer service
+    HBox createCustomerServiceScene(){
+        
+        //Store Details
+        Label userGuide = new Label();
+        userGuide.setText("USER GUIDE");
+        userGuide.setAlignment(Pos.CENTER);
+        this.setLabelFont(userGuide, 16);
+
+        Label userManual = new Label("This app sucks tbh, but if you want to use it anyway, do the following");
+        
+
+        //Alignment
+
+        return null;
+    }
+    
     // all animations
 
     void buttonAnimation(Button button){
-        button.setStyle("-fx-background-color: #7AB2D3");
+        button.setStyle("-fx-background-color: black");
         button.setTextFill(Color.WHITE);
         button.setOnMouseEntered(e -> {
             button.setStyle("-fx-background-color: white"); 
             button.setTextFill(Color.BLACK);
         });
         button.setOnMouseExited(e -> {
-            button.setStyle("-fx-background-color: #7AB2D3"); 
+            button.setStyle("-fx-background-color: black"); 
             button.setTextFill(Color.WHITE);
         });
+
+        // color code : #7AB2D3
     }
 
     void multipleButtonAnimation(Button button1, Button button2){
@@ -846,6 +985,13 @@ public class AppView {
 
     void setLabelFont(Label label, int size){
         label.setFont(Font.font("MonoSpace", FontWeight.EXTRA_BOLD, size));
+    }
+
+    void changeUser(User u){
+        this.name.setText("Username: " + u.getUserName());
+        this.password.setText("Password: " + u.getPasswordHash());
+        this.balance.setText("Balance: A$" + u.getBalance());
+        this.accountType.setText("Account type: " + u.getClass().getName());
     }
 
     // accesor for all scenes
