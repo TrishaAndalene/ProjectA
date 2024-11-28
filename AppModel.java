@@ -79,6 +79,13 @@ public class AppModel{
         }
     }
 
+    public boolean isSeller(){
+        if (this.currentBuyer instanceof Seller){
+            return true;
+        }
+        return false;
+    }
+
     // methods list show template only
     
     
@@ -267,19 +274,20 @@ class Buyer extends User {
         return this.cart;
     }
 
-    ArrayList<Integer> getCartIDs(){
-        ArrayList<Integer> cartIDs = new ArrayList<>();
-        for (Purchase pur : cart){
-            cartIDs.add(pur.getProduct().getProductID());
-        }
-        return cartIDs;
-    }
+    // ArrayList<Integer> getCartIDs(){
+    //     ArrayList<Integer> cartIDs = new ArrayList<>();
+    //     for (Purchase pur : cart){
+    //         cartIDs.add(pur.getProduct().getProductID());
+    //     }
+    //     return cartIDs;
+    // }
 }
 
 //SELLER--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class Seller extends User {
     //2 array lists with the option to expand for refunds. Unable to do because of time constraints
     ArrayList<Integer> sellerCatalogue;
+    ArrayList<Product> sellerStorage;
     String contactNumber;
     static final double SELL_FEE = 0.05;
 
@@ -288,16 +296,18 @@ class Seller extends User {
         super(userName, passWord);
         this.contactNumber = contactNumber;
         this.sellerCatalogue = new ArrayList<>();
+        this.sellerStorage = new ArrayList<>();
     }
 
     //check products on seller catalogue
     public int checkProducts(ArrayList<Product> products){
+        this.sellerStorage.clear();
         int size = getSellerCatalogue().size();
         if(getSellerCatalogue().size() != 0){
             System.out.println(this.userName + "'s Inventory:");
             for (Product p : products){
                 if (getSellerCatalogue().contains(p.getProductID()))
-                    System.out.println(p);
+                    this.sellerStorage.add(p);
             }
         }
         return size;
@@ -351,7 +361,7 @@ class Product {
     private Category category;
     //Product IDs
     private static int productId = 0;
-    int id;
+    SimpleIntegerProperty id;
 
     Product(String name, double price, Category category, int stock){
         this.itemName = new SimpleStringProperty(name);
@@ -360,7 +370,7 @@ class Product {
         this.seller = null;
         this.category = category;
         //Product IDs
-        this.id = Product.productId;
+        this.id = new SimpleIntegerProperty(Product.productId);
         Product.productId += 1;
     }
 
@@ -432,7 +442,7 @@ class Product {
         return this.seller.getUserName();
     }
 
-    public int getProductID(){
+    public SimpleIntegerProperty getProductID(){
         return this.id;
     }
 
