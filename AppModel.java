@@ -129,6 +129,14 @@ abstract class User {
         return hash;
     }
 
+    public boolean checkPassword(String pass){
+        if (pass.equals(this.passWord)){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     //setters
     void editUserName(String userName){
         this.userName = userName;
@@ -144,7 +152,9 @@ abstract class User {
     }
 
     void addBalance(double cash){
-        this.balance += cash;
+        if (cash > 0){
+            this.balance += cash;
+        }
     }
 
     void subtractBalance(double cash){
@@ -243,10 +253,10 @@ class Buyer extends User {
     }
 
     void addBalance(){
-        checkBalance();
+        //checkBalance();
         // double cash = ModIn.getInteger("How much cash do you want to add to you account: ");
         // super.addBalance(cash);
-        checkBalance();
+        //checkBalance();
     }
 
     void addPreviousPurchase(Purchase purchase){
