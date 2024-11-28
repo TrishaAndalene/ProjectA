@@ -22,6 +22,7 @@ public class _init_ extends Application{
 
         // setting the value to be used globally in view
         view.primaryStage = primaryStage;
+        view.primaryStage.setResizable(false);
 
         primaryStage.setTitle("Project A");
         // show scene
@@ -29,6 +30,5 @@ public class _init_ extends Application{
         primaryStage.show();
 
         view.createAccountManagerScreen();
-
     }
 };
