@@ -38,9 +38,11 @@ public class AppView {
     protected AppController control;
     protected ObservableList<Purchase> buyerCart;
     protected Label itemNum, itemCost, name, password, accountType, balance;
+    protected ObservableList<Product> sellerCatalogue;
     int count;
     protected SimpleIntegerProperty itemCount;
     protected SimpleDoubleProperty totalPriceCost;
+    protected Tab shoppingCart;
 
     public AppView(AppModel model, AppController control){
         this.scenes = new HashMap<>();
@@ -50,6 +52,9 @@ public class AppView {
 
         //misc attribute
         this.buyerCart = FXCollections.observableArrayList(this.model.checkIfBuyer().cart);
+        if (this.model.checkIfBuyer() == null){
+            this.sellerCatalogue = FXCollections.observableArrayList(this.model.checkIfSeller().sellerStorage);
+        }
         this.itemNum = new Label("");
         this.itemCost = new Label("");
         this.itemCount = new SimpleIntegerProperty(0);
@@ -58,6 +63,7 @@ public class AppView {
         this.password = new Label();
         this.accountType = new Label();
         this.balance = new Label();
+        this.shoppingCart = new Tab("Shopping Cart");
 
         // trigger to for scenes
         this.createRegisScreen();
@@ -691,16 +697,13 @@ public class AppView {
         Tab catalogue = new Tab("Catalogue");
         catalogue.setContent(this.createCatalogueRootScene());
 
-        Tab shoppingCart = new Tab("Shopping Cart");
-        shoppingCart.setContent(this.createCartRootScene());
-
         Tab profile = new Tab("Profile");
         profile.setContent(this.createProfileRootScene());
 
         Tab logOut = new Tab("Customer Service");
 
         //Tab addition
-        customerOptions.getTabs().addAll(catalogue, shoppingCart, profile, logOut);
+        customerOptions.getTabs().addAll(catalogue, this.shoppingCart, profile, logOut);
         
         customerOptions.setTabMinWidth(ScreenWidth/4.5);
         customerOptions.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
@@ -808,6 +811,7 @@ public class AppView {
 
     }
 
+    // buyer root scene
     HBox createCartRootScene(){
 
         //Listing items from catalogue
@@ -889,6 +893,111 @@ public class AppView {
         return root;
     }
 
+    // seller root scene
+    HBox createMyStockRootScene(){
+
+        TableView<Purchase> cart = new TableView<>();
+
+        //columns and their resizing
+        TableColumn<Purchase, Integer> productIDCol = new TableColumn<>("ID");
+        productIDCol.setMinWidth(50);
+        productIDCol.setSortable(false);
+
+        TableColumn<Purchase, String> productNameCol = new TableColumn<>("Products");
+        productNameCol.setMinWidth(50);
+        productNameCol.setSortable(false);
+        
+        TableColumn<Purchase, Integer> productPriceQuantityCol = new TableColumn<>("Quantity");
+        productPriceQuantityCol.setMinWidth(50);
+        productPriceQuantityCol.setSortable(false);
+
+        TableColumn<Purchase, Double> totalPriceCol = new TableColumn<>("TotalPrice");
+        totalPriceCol.setMinWidth(50);
+        totalPriceCol.setSortable(false);
+        
+        productIDCol.setCellValueFactory(cellData -> cellData.getValue().product.getProductID().asObject());
+        productNameCol.setCellValueFactory(cellData -> cellData.getValue().product.getName());
+        productPriceQuantityCol.setCellValueFactory(cellData -> cellData.getValue().getQuantity().asObject());
+        totalPriceCol.setCellValueFactory(cellData -> cellData.getValue().calculatePurchase().asObject());
+
+        cart.getColumns().addAll(productIDCol, productNameCol, productPriceQuantityCol, totalPriceCol);
+        cart.setMaxSize(402, 300);
+
+        // table function
+        cart.setOnMouseClicked(e -> {
+            Purchase selectedProduct = cart.getSelectionModel().getSelectedItem();
+            cart.getSelectionModel().clearSelection();
+            if (selectedProduct != null){
+                this.createDeleteWindow(selectedProduct);
+            }
+        });
+
+        // sample data
+        System.out.print("okay");
+        
+        // set view table
+        cart.setItems(this.buyerCart);
+        cart.setTranslateY(10);
+        cart.setTranslateX(30);
+
+        // labels
+        Label branding = new Label("My Catalogue");
+        branding.setAlignment(Pos.CENTER);
+        branding.setTranslateX(80);
+        this.setLabelFont(branding, 18);
+
+        Label itemNamelabel = new Label("Product name:");
+        this.setLabelFont(itemNamelabel, 16);
+
+        TextField itemNameInput = new TextField();
+        itemNameInput.setPrefWidth(280);
+
+        Label itemPrice = new Label("Price: ");
+        this.setLabelFont(itemPrice, 16);
+
+        TextField itemPriceInput = new TextField();
+        itemPriceInput.setPrefWidth(280);
+
+        Label itemStock = new Label("Stock: ");
+        this.setLabelFont(itemStock, 16);
+
+        TextField itemStockInput = new TextField();
+        itemStockInput.setPrefWidth(280);
+
+        // category option
+        Label categoryLabel = new Label("Category:");
+        this.setLabelFont(categoryLabel, 16);
+
+        String[] categoryOption = {"ANY", "FOOD", "BEVERAGE", "HOMEWARE", "ELECTRONIC", "TOYS", "FASHION", "OFFICE", "EVENT", "BATHROOOM"};
+        ComboBox categoryBox = new ComboBox(FXCollections.observableArrayList(categoryOption));
+        categoryBox.getSelectionModel().select(0);
+
+        // create the platform
+        TilePane categoryPane = new TilePane(categoryBox);
+
+        // function button
+        Button finalize = new Button("Add to Catalogue");
+        finalize.setMinWidth(280);
+        finalize.setTranslateY(20);
+        this.buttonAnimation(finalize);
+
+        // layouting
+        VBox details = new VBox();
+        details.getChildren().addAll(branding, itemNamelabel, itemNameInput,itemPrice, itemPriceInput, itemStock, itemStockInput, categoryLabel, categoryBox,finalize);
+        details.setSpacing(5);
+        details.setTranslateX(70);
+        details.setTranslateY(20);
+
+        HBox root = new HBox();
+        root.setPrefWidth(700);
+        root.setPrefHeight(350);
+        root.getChildren().addAll(cart, details);
+        root.setAlignment(Pos.CENTER_LEFT);
+
+        return root;
+    }
+
+    // neutral root scene
     HBox createProfileRootScene() throws FileNotFoundException{
         
         // left
@@ -992,6 +1101,12 @@ public class AppView {
         this.password.setText("Password: " + u.getPasswordHash());
         this.balance.setText("Balance: A$" + u.getBalance());
         this.accountType.setText("Account type: " + u.getClass().getName());
+        if (this.model.isSeller()){
+            this.shoppingCart.setText("Storage");
+            this.shoppingCart.setContent(this.createMyStockRootScene());   
+        } else {
+            this.shoppingCart.setContent(this.createCartRootScene());
+        }
     }
 
     // accesor for all scenes
