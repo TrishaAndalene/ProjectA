@@ -54,7 +54,13 @@ public class AppView {
         this.catalogue = FXCollections.observableArrayList(this.model.generateCatalogue()); // dummy data
         
         this.buyerCart = FXCollections.observableArrayList(this.model.checkIfBuyer().cart);
-        this.sellerCatalogue = FXCollections.observableArrayList(this.model.checkIfSeller().getSellerCatalogue());
+
+        try {
+            this.sellerCatalogue = FXCollections.observableArrayList(this.model.checkIfSeller().getSellerCatalogue());
+        } catch (Exception e){
+            // pass
+        }
+
         this.itemNum = new Label("");
         this.itemCost = new Label("");
         this.itemCount = new SimpleIntegerProperty(0);
@@ -494,7 +500,7 @@ public class AppView {
         updateName.show();
     }
 
-    public void createEditProductWindow(Product item){
+    public void createEditProductWindow(Product item, int index){
         Stage editWindow = new Stage();
         editWindow.setTitle("Item Customization");
 
@@ -522,7 +528,10 @@ public class AppView {
         // floating button
         Button save = new Button("Save");
         save.setOnAction(e -> {
-            item.editProductDetails(itemNameInput.getText(), itemPriceInput.getText(), itemStockInput.getText());
+            item.editProductDetails(itemNameInput.getText(), this.control.convertStringToDouble(itemPriceInput.getText()), this.control.convertStringToInt(itemStockInput.getText()));
+            this.catalogue.set((item.getProductID().getValue()-1), item);
+            this.sellerCatalogue.set(index, item);
+            editWindow.close();
         });
 
 
@@ -531,6 +540,8 @@ public class AppView {
             this.sellerCatalogue.remove(item);
             this.catalogue.remove(item);
             this.model.checkIfSeller().deleteProduct(item);
+            System.out.println(this.sellerCatalogue);
+            editWindow.close();
         });
 
         this.multipleButtonAnimation(save, delete);
@@ -1044,14 +1055,17 @@ public class AppView {
         // table function
         sellerInventory.setOnMouseClicked(e -> {
             Product selectedProduct = sellerInventory.getSelectionModel().getSelectedItem();
+
+            int index = sellerInventory.getSelectionModel().getSelectedIndex();
+
             sellerInventory.getSelectionModel().clearSelection();
             if (selectedProduct != null){
-                this.createEditProductWindow(selectedProduct);
+                this.createEditProductWindow(selectedProduct, index);
             }
         });
         
         // set view table
-        sellerInventory.setItems(FXCollections.observableArrayList(this.model.checkIfSeller().getSellerCatalogue()));
+        sellerInventory.setItems(this.sellerCatalogue);
         sellerInventory.setTranslateY(10);
         sellerInventory.setTranslateX(30);
 
@@ -1105,6 +1119,8 @@ public class AppView {
                 System.out.println(this.model.checkIfSeller().sellerCatalogue);
 
                 sellerInventory.setItems(FXCollections.observableArrayList(this.model.checkIfSeller().getSellerCatalogue()));
+
+                this.sellerCatalogue.setAll(sellerInventory.getItems());
                 //update the catalogue to reflect changes
                 this.catalogue.add(item);
                 // this.catalogue.setItems(this.model.generateCatalogue());
@@ -1232,9 +1248,11 @@ public class AppView {
         this.balance.setText("Balance: A$" + u.getBalance());
         this.accountType.setText("Account type: " + u.getClass().getName());
         if (this.model.isSeller()){
+            this.sellerCatalogue = FXCollections.observableArrayList(this.model.checkIfSeller().getSellerCatalogue());
             this.shoppingCart.setText("Storage");
             this.shoppingCart.setContent(this.createMyStockRootScene());   
         } else {
+            this.buyerCart.setAll(this.model.checkIfBuyer().getCart());
             this.shoppingCart.setContent(this.createCartRootScene());
         }
     }
