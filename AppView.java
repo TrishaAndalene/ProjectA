@@ -1112,7 +1112,9 @@ public class AppView {
 
         finalize.setOnAction(e -> {
             if (this.control.stringNotNull(itemNameInput.getText()) && this.control.stringNotNull(itemPriceInput.getText()) && this.control.stringNotNull(itemStockInput.getText())){
-                Product item = new Product(itemNameInput.getText(), this.control.convertStringToDouble(itemPriceInput.getText()), Category.BEVERAGE, this.control.convertStringToInt(itemStockInput.getText()), this.model.checkIfSeller());
+                Product item = new Product(itemNameInput.getText(), this.control.convertStringToDouble(itemPriceInput.getText()), categoryOption[(categoryBox.getSelectionModel().getSelectedIndex())], this.control.convertStringToInt(itemStockInput.getText()), this.model.checkIfSeller());
+
+                System.out.println(item.getCategory());
 
                 this.model.checkIfSeller().addProduct(item);
 
