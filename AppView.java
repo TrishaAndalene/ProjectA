@@ -38,7 +38,7 @@ public class AppView {
     protected AppController control;
     protected ObservableList<Purchase> buyerCart;
     protected Label itemNum, itemCost, name, password, accountType, balance;
-    protected ObservableList<Product> sellerCatalogue;
+    protected ObservableList<Product> sellerCatalogue, catalogue;
     int count;
     protected SimpleIntegerProperty itemCount;
     protected SimpleDoubleProperty totalPriceCost;
@@ -51,14 +51,15 @@ public class AppView {
         this.control = control;
 
         //misc attribute
+        this.catalogue = FXCollections.observableArrayList(this.model.generateCatalogue()); // dummy data
+        
         this.buyerCart = FXCollections.observableArrayList(this.model.checkIfBuyer().cart);
-        if (this.model.checkIfBuyer() == null){
-            this.sellerCatalogue = FXCollections.observableArrayList(this.model.checkIfSeller().sellerStorage);
-        }
+        this.sellerCatalogue = FXCollections.observableArrayList(this.model.checkIfSeller().getSellerCatalogue());
         this.itemNum = new Label("");
         this.itemCost = new Label("");
         this.itemCount = new SimpleIntegerProperty(0);
         this.totalPriceCost = new SimpleDoubleProperty(0);
+
         this.name = new Label();
         this.password = new Label();
         this.accountType = new Label();
@@ -181,6 +182,47 @@ public class AppView {
         greetings.show();
     }
 
+    //cart confirmation window
+    public void createPurchaseFinalizationWindow(int i){
+        //initialize a stage
+        Stage userVerif = new Stage();
+        userVerif.setTitle("Cart Status Window");
+
+        //Cart status
+        Label title = new Label();
+        this.setLabelFont(title, 16);
+        
+        //Message
+        Label body = new Label();
+        this.setLabelFont(body, 14);
+        
+        if (i == 1){
+            title.setText("Purchase Succesful");
+            body.setText("Thank you for purchasing");
+        } else {
+            title.setText("Purchase Failed");
+            body.setText("Please add more balance");
+        }
+
+        //button
+        Button confirmButton = new Button("Confirm");
+        this.buttonAnimation(confirmButton);
+        confirmButton.setMinWidth(150);
+        confirmButton.setOnAction(e -> {
+            userVerif.close();
+        });
+
+        //HBoxes and VBoxes
+        VBox root = new VBox();
+        root.getChildren().addAll(title, body, confirmButton);
+        root.setAlignment(Pos.CENTER);
+        root.setSpacing(20);
+        
+        //close the menu
+        userVerif.setScene(new Scene(root, 250, 200));
+        userVerif.show();
+    }
+
     public void createUserVerificationWindow(){
         Stage userVerif = new Stage();
         userVerif.setTitle("User Verification");
@@ -279,16 +321,16 @@ public class AppView {
         this.setLabelFont(titleLabel, 10);
 
         // product printing
-        Label itemName = new Label(item.getName().getValue());
+        Label itemName = new Label("Name:    " + item.getName().getValue());
         this.setLabelFont(itemName, 14);
 
-        Label price = new Label("Selling price: A$" + item.getPrice().getValue());
+        Label price = new Label("Price:   A$ " + item.getPrice().getValue());
         this.setLabelFont(price, 14);
 
-        Label stock = new Label("Stock:               " + item.getStock().getValue());
+        Label stock = new Label("Stock:   " + item.getStock().getValue());
         this.setLabelFont(stock, 14);
 
-        Label sellerName = new Label("Seller:           NULL");
+        Label sellerName = new Label("Seller:  " + item.getSellerName());
         this.setLabelFont(sellerName, 14);
 
         // button
@@ -452,6 +494,62 @@ public class AppView {
         updateName.show();
     }
 
+    public void createEditProductWindow(Product item){
+        Stage editWindow = new Stage();
+        editWindow.setTitle("Item Customization");
+
+        Label itemNamelabel = new Label("Product name:");
+        this.setLabelFont(itemNamelabel, 16);
+
+        TextField itemNameInput = new TextField();
+        itemNameInput.setText("" + item.getName().getValue());
+        itemNameInput.setMaxWidth(100);
+
+        Label itemPrice = new Label("Price: ");
+        this.setLabelFont(itemPrice, 16);
+
+        TextField itemPriceInput = new TextField();
+        itemPriceInput.setText("" + item.getPrice().getValue());
+        itemPriceInput.setMaxWidth(100);
+
+        Label itemStock = new Label("Stock: ");
+        this.setLabelFont(itemStock, 16);
+
+        TextField itemStockInput = new TextField();
+        itemStockInput.setMaxWidth(100);
+        itemStockInput.setText("" + item.getStock().getValue());
+
+        // floating button
+        Button save = new Button("Save");
+        save.setOnAction(e -> {
+            item.editProductDetails(itemNameInput.getText(), itemPriceInput.getText(), itemStockInput.getText());
+        });
+
+
+        Button delete = new Button("Delete");
+        delete.setOnAction(e -> {
+            this.sellerCatalogue.remove(item);
+            this.catalogue.remove(item);
+            this.model.checkIfSeller().deleteProduct(item);
+        });
+
+        this.multipleButtonAnimation(save, delete);
+
+        HBox buttonBox = new HBox();
+        buttonBox.getChildren().addAll(save, delete);
+        buttonBox.setSpacing(20);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        VBox root = new VBox();
+        root.getChildren().addAll(itemNamelabel, itemNameInput, itemPrice, itemPriceInput, itemStock, itemStockInput, buttonBox);
+        root.setAlignment(Pos.CENTER);
+        root.setSpacing(10);
+
+        editWindow.setScene(new Scene(root, 300, 300));
+        editWindow.show();
+        
+    }
+
     // create all pages/scenes
     void createRegisScreen(){
         // object
@@ -502,8 +600,8 @@ public class AppView {
         RadioButton sellerBtn = new RadioButton("Seller");
         sellerBtn.setToggleGroup(toggleAccountCreateGroup);
  
-        RadioButton guestBtn = new RadioButton("Buyer");
-        guestBtn.setToggleGroup(toggleAccountCreateGroup);
+        RadioButton buyerBtn = new RadioButton("Buyer");
+        buyerBtn.setToggleGroup(toggleAccountCreateGroup);
 
         Label warningLabel = new Label("<!> check all the requirements");
         warningLabel.setVisible(false);
@@ -518,7 +616,7 @@ public class AppView {
                     sellerBtn.setSelected(false);
                 } else {
                     this.model.createBuyer(regisAcc.getText(), regisPass.getText());
-                    guestBtn.setSelected(false);
+                    buyerBtn.setSelected(false);
                 }
                 this.createAccountManagerScreen();
                 warningLabel.setVisible(false);
@@ -541,7 +639,7 @@ public class AppView {
         horiRootButton.setTranslateX(90);
  
         HBox horiRootAccount = new HBox();
-        horiRootAccount.getChildren().addAll(accountType, guestBtn, sellerBtn);
+        horiRootAccount.getChildren().addAll(accountType, buyerBtn, sellerBtn);
         horiRootAccount.setAlignment(Pos.CENTER_LEFT);
         horiRootAccount.setSpacing(paddingLeft+25);
   
@@ -791,15 +889,9 @@ public class AppView {
                 e1.printStackTrace();
         }
         });
-
-        // sample data
-        ObservableList<Product> sampleData = FXCollections.observableArrayList(
-                new Product("Horse", 500, Category.ELECTRONIC, 4),
-                new Product("Sheep", 200, Category.BATHROOOM, 2),
-                new Product("Cow", 400, Category.EVENT, 7));
         
-        // set view table
-        catalogue.setItems(sampleData);
+        //set the catalogue class to the items of the menu
+        catalogue.setItems(this.catalogue);
         catalogue.setTranslateY(30);
 
         VBox root = new VBox();
@@ -826,7 +918,7 @@ public class AppView {
         productPriceQuantityCol.setMinWidth(100);
         productPriceQuantityCol.setSortable(false);
 
-        TableColumn<Purchase, Double> totalPriceCol = new TableColumn<>("TotalPrice");
+        TableColumn<Purchase, Double> totalPriceCol = new TableColumn<>("Price");
         totalPriceCol.setMinWidth(100);
         totalPriceCol.setSortable(false);
         
@@ -856,7 +948,7 @@ public class AppView {
         cart.setTranslateX(30);
 
         // labels
-        Label branding = new Label("MyCart");
+        Label branding = new Label("My Cart");
         branding.setAlignment(Pos.CENTER);
         branding.setTranslateX(105);
         this.setLabelFont(branding, 18);
@@ -876,6 +968,24 @@ public class AppView {
         finalize.setMinWidth(280);
         finalize.setTranslateY(-20);
         this.buttonAnimation(finalize);
+        //when finalizing, send all the cash to the correct sellers
+        finalize.setOnMouseClicked(e -> {
+            int checkingValue = this.model.checkIfBuyer().checkoutProduct(this.model.getUsers());
+            //check if 1 (balance is enough) or 0 (balance isn't)
+            if (checkingValue == 1){
+                //recheck the value of the cart and item total, fix balance
+                this.itemCount.set(this.model.checkIfBuyer().checkCart());
+                this.totalPriceCost.set(this.model.checkIfBuyer().getTotalPriceCart());
+                //update account profile's balance
+                changeUser(this.model.checkIfBuyer());
+                //add a popup window to indicate the sale has been succesful
+                createPurchaseFinalizationWindow(checkingValue);
+                cart.getItems().clear();
+            } else {
+                //provide an error message otherwise
+                createPurchaseFinalizationWindow(checkingValue);
+            }
+        });
 
         // layouting
         VBox details = new VBox();
@@ -896,49 +1006,54 @@ public class AppView {
     // seller root scene
     HBox createMyStockRootScene(){
 
-        TableView<Purchase> cart = new TableView<>();
+        TableView<Product> sellerInventory = new TableView<>();
 
         //columns and their resizing
-        TableColumn<Purchase, Integer> productIDCol = new TableColumn<>("ID");
-        productIDCol.setMinWidth(50);
+        TableColumn<Product, Integer> productIDCol = new TableColumn<>("ID");
+        productIDCol.setMinWidth(60);
         productIDCol.setSortable(false);
+        productIDCol.setResizable(false);
+        productIDCol.setReorderable(false);
 
-        TableColumn<Purchase, String> productNameCol = new TableColumn<>("Products");
-        productNameCol.setMinWidth(50);
+        TableColumn<Product, String> productNameCol = new TableColumn<>("Products");
+        productNameCol.setMinWidth(60);
         productNameCol.setSortable(false);
+        productNameCol.setResizable(false);
+        productNameCol.setReorderable(false);
         
-        TableColumn<Purchase, Integer> productPriceQuantityCol = new TableColumn<>("Quantity");
-        productPriceQuantityCol.setMinWidth(50);
+        TableColumn<Product, Integer> productPriceQuantityCol = new TableColumn<>("Quantity");
+        productPriceQuantityCol.setMinWidth(60);
         productPriceQuantityCol.setSortable(false);
+        productPriceQuantityCol.setResizable(false);
+        productPriceQuantityCol.setReorderable(false);
 
-        TableColumn<Purchase, Double> totalPriceCol = new TableColumn<>("TotalPrice");
-        totalPriceCol.setMinWidth(50);
+        TableColumn<Product, Double> totalPriceCol = new TableColumn<>("Price");
+        totalPriceCol.setMinWidth(60);
         totalPriceCol.setSortable(false);
+        totalPriceCol.setResizable(false);
+        totalPriceCol.setReorderable(false);
         
-        productIDCol.setCellValueFactory(cellData -> cellData.getValue().product.getProductID().asObject());
-        productNameCol.setCellValueFactory(cellData -> cellData.getValue().product.getName());
-        productPriceQuantityCol.setCellValueFactory(cellData -> cellData.getValue().getQuantity().asObject());
-        totalPriceCol.setCellValueFactory(cellData -> cellData.getValue().calculatePurchase().asObject());
+        productIDCol.setCellValueFactory(cellData -> cellData.getValue().getProductID().asObject());
+        productNameCol.setCellValueFactory(cellData -> cellData.getValue().getName());
+        productPriceQuantityCol.setCellValueFactory(cellData -> cellData.getValue().getStock().asObject());
+        totalPriceCol.setCellValueFactory(cellData -> cellData.getValue().getPrice().asObject());
 
-        cart.getColumns().addAll(productIDCol, productNameCol, productPriceQuantityCol, totalPriceCol);
-        cart.setMaxSize(402, 300);
+        sellerInventory.getColumns().addAll(productIDCol, productNameCol, productPriceQuantityCol, totalPriceCol);
+        sellerInventory.setMaxSize(402, 300);
 
         // table function
-        cart.setOnMouseClicked(e -> {
-            Purchase selectedProduct = cart.getSelectionModel().getSelectedItem();
-            cart.getSelectionModel().clearSelection();
+        sellerInventory.setOnMouseClicked(e -> {
+            Product selectedProduct = sellerInventory.getSelectionModel().getSelectedItem();
+            sellerInventory.getSelectionModel().clearSelection();
             if (selectedProduct != null){
-                this.createDeleteWindow(selectedProduct);
+                this.createEditProductWindow(selectedProduct);
             }
         });
-
-        // sample data
-        System.out.print("okay");
         
         // set view table
-        cart.setItems(this.buyerCart);
-        cart.setTranslateY(10);
-        cart.setTranslateX(30);
+        sellerInventory.setItems(FXCollections.observableArrayList(this.model.checkIfSeller().getSellerCatalogue()));
+        sellerInventory.setTranslateY(10);
+        sellerInventory.setTranslateX(30);
 
         // labels
         Label branding = new Label("My Catalogue");
@@ -968,7 +1083,7 @@ public class AppView {
         Label categoryLabel = new Label("Category:");
         this.setLabelFont(categoryLabel, 16);
 
-        String[] categoryOption = {"ANY", "FOOD", "BEVERAGE", "HOMEWARE", "ELECTRONIC", "TOYS", "FASHION", "OFFICE", "EVENT", "BATHROOOM"};
+        Category[] categoryOption = {Category.ANY, Category.FOOD, Category.BEVERAGE, Category.HOMEWARE, Category.ELECTRONIC, Category.TOYS, Category.FASHION, Category.OFFICE, Category.EVENT, Category.BATHROOOM};
         ComboBox categoryBox = new ComboBox(FXCollections.observableArrayList(categoryOption));
         categoryBox.getSelectionModel().select(0);
 
@@ -981,6 +1096,21 @@ public class AppView {
         finalize.setTranslateY(20);
         this.buttonAnimation(finalize);
 
+        finalize.setOnAction(e -> {
+            if (this.control.stringNotNull(itemNameInput.getText()) && this.control.stringNotNull(itemPriceInput.getText()) && this.control.stringNotNull(itemStockInput.getText())){
+                Product item = new Product(itemNameInput.getText(), this.control.convertStringToDouble(itemPriceInput.getText()), Category.BEVERAGE, this.control.convertStringToInt(itemStockInput.getText()), this.model.checkIfSeller());
+
+                this.model.checkIfSeller().addProduct(item);
+
+                System.out.println(this.model.checkIfSeller().sellerCatalogue);
+
+                sellerInventory.setItems(FXCollections.observableArrayList(this.model.checkIfSeller().getSellerCatalogue()));
+                //update the catalogue to reflect changes
+                this.catalogue.add(item);
+                // this.catalogue.setItems(this.model.generateCatalogue());
+            }
+        });
+
         // layouting
         VBox details = new VBox();
         details.getChildren().addAll(branding, itemNamelabel, itemNameInput,itemPrice, itemPriceInput, itemStock, itemStockInput, categoryLabel, categoryBox,finalize);
@@ -991,7 +1121,7 @@ public class AppView {
         HBox root = new HBox();
         root.setPrefWidth(700);
         root.setPrefHeight(350);
-        root.getChildren().addAll(cart, details);
+        root.getChildren().addAll(sellerInventory, details);
         root.setAlignment(Pos.CENTER_LEFT);
 
         return root;
@@ -1118,3 +1248,4 @@ public class AppView {
         this.primaryStage.setScene(this.scenes.get(key));
     }
 }
+
