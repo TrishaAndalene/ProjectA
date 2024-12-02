@@ -32,6 +32,8 @@ public class AppView {
     final static int ScreenWidth = 700;
     final static int ScreenHeight = 450;
 
+    TabPane customerOptions = new TabPane();
+
     public HashMap<String, Scene> scenes;
     protected Stage primaryStage;
     protected AppModel model;
@@ -42,7 +44,7 @@ public class AppView {
     int count;
     protected SimpleIntegerProperty itemCount;
     protected SimpleDoubleProperty totalPriceCost;
-    protected Tab shoppingCart;
+    protected Tab shoppingCart, cataloguePane;
 
     public AppView(AppModel model, AppController control){
         this.scenes = new HashMap<>();
@@ -798,13 +800,10 @@ public class AppView {
         imgView.setTranslateX(-20);
         imgView.setTranslateY(10);
         titleLabel.setTranslateY(-10);
-
-        //Tabs for Customer Options
-        TabPane customerOptions = new TabPane();
         
         //Tabs
-        Tab catalogue = new Tab("Catalogue");
-        catalogue.setContent(this.createCatalogueRootScene());
+        this.cataloguePane = new Tab("Catalogue");
+        cataloguePane.setContent(this.createCatalogueRootScene());
 
         Tab profile = new Tab("Profile");
         profile.setContent(this.createProfileRootScene());
@@ -812,7 +811,7 @@ public class AppView {
         Tab logOut = new Tab("Customer Service");
 
         //Tab addition
-        customerOptions.getTabs().addAll(catalogue, this.shoppingCart, profile, logOut);
+        customerOptions.getTabs().addAll(this.cataloguePane, this.shoppingCart, profile, logOut);
         
         customerOptions.setTabMinWidth(ScreenWidth/4.5);
         customerOptions.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
@@ -1125,6 +1124,11 @@ public class AppView {
                 this.sellerCatalogue.setAll(sellerInventory.getItems());
                 //update the catalogue to reflect changes
                 this.catalogue.add(item);
+
+                itemNameInput.clear();
+                itemPriceInput.clear();
+                itemStockInput.clear();
+                categoryBox.getSelectionModel().select(0);
                 // this.catalogue.setItems(this.model.generateCatalogue());
             }
         });
@@ -1284,6 +1288,7 @@ public class AppView {
     }
 
     void changeUser(User u){
+        customerOptions.getSelectionModel().select(this.cataloguePane);
         this.name.setText("Username: " + u.getUserName());
         this.password.setText("Password: " + u.getPasswordHash());
         this.balance.setText("Balance: A$" + u.getBalance());
@@ -1294,6 +1299,7 @@ public class AppView {
             this.shoppingCart.setContent(this.createMyStockRootScene());   
         } else {
             this.buyerCart.setAll(this.model.checkIfBuyer().getCart());
+            this.shoppingCart.setText("My Cart");
             this.shoppingCart.setContent(this.createCartRootScene());
         }
     }
