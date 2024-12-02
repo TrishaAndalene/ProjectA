@@ -1298,6 +1298,8 @@ public class AppView {
             this.shoppingCart.setText("Storage");
             this.shoppingCart.setContent(this.createMyStockRootScene());   
         } else {
+            this.itemCount.set(this.model.checkIfBuyer().checkCart());
+            this.totalPriceCost.set(this.model.checkIfBuyer().getTotalPriceCart());
             this.buyerCart.setAll(this.model.checkIfBuyer().getCart());
             this.shoppingCart.setText("My Cart");
             this.shoppingCart.setContent(this.createCartRootScene());
@@ -1313,4 +1315,5 @@ public class AppView {
         this.primaryStage.setScene(this.scenes.get(key));
     }
 }
+
 
