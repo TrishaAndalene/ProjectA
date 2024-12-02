@@ -20,7 +20,7 @@ interface PageTrack{
 public class AppModel{
     
     // class attribute
-
+    
     private ArrayList<User> users;
     private final static ArrayList<Character> ACCT_TYPE = new ArrayList<>(Arrays.asList('B', 'S'));
 
@@ -33,7 +33,19 @@ public class AppModel{
         this.engineStatus = true;
         this.userOption = 0;
         this.users = new ArrayList<>();
-        this.currentBuyer = new Buyer("admin", "12345");
+        //sample data
+            Seller testSeller = new Seller("aaaa", "23", "1237712351");
+            testSeller.addProduct(new Product("Horse", 400, Category.BATHROOOM, 13, testSeller));
+            testSeller.addProduct(new Product("Cow", 230, Category.BEVERAGE, 24, testSeller));
+            testSeller.addProduct(new Product("Chicken", 60, Category.HOMEWARE, 45, testSeller));
+            testSeller.addProduct(new Product("Sheep", 150, Category.TOYS, 8, testSeller));
+            this.users.add(testSeller);
+ 
+            Buyer testBuyer = new Buyer("admin", "12345");
+            this.addUser(testBuyer);
+        //default account
+        this.currentBuyer = testBuyer;
+
     }
 
     // user creation method
@@ -86,13 +98,45 @@ public class AppModel{
         return false;
     }
 
-    // methods list show template only
-    
-    
-    // page settings for balance
+    //generate the catalogue from all the sellers
+    ArrayList<Product> generateCatalogue(){
+        ArrayList<Product> catalogue = new ArrayList<>();
+        for (User user : this.users){
+            if (user instanceof Seller){
+                Seller seller = (Seller) user;
+                for (Product product : seller.getSellerCatalogue()){
+                    catalogue.add(product);
+                }
+            }
+        }
+        return catalogue;
+    }
+
+    ArrayList<Product> generateCatalogue(Category category){
+        ArrayList<Product> catalogue = new ArrayList<>();
+        for (User user : this.users){
+            if (user instanceof Seller){
+                Seller seller = (Seller) user;
+                for (Product product : seller.getSellerCatalogue()){
+                    if (product.getCategory() == category){
+                        catalogue.add(product);
+                    }
+                }
+            }
+        }
+        return catalogue;
+    }
+
+    //obtain the array list of users
+    ArrayList<User> getUsers(){
+        return this.users;
+    }
+
+    //method as a work around to add a test seller
+    void addUser(User user){
+        this.users.add(user);
+    }
 }
-
-
 // ------------------------- ALL OBJECTS --------------------------
 abstract class User {
     //taken from the week 6 module aptitude test to generate UIDs
@@ -104,8 +148,6 @@ abstract class User {
     //initialize an account, for simplicity sake, we don't need to add age as an attribute to users unless we want to make a recommendation algorithm
     User(String userName, String passWord){
         //taken from the week 6 module aptitude test to generate UIDs
-        this.id = User.nextId;
-        User.nextId += 1;
         this.userName = userName;
         this.passWord = passWord;
         this.balance = 0;
@@ -259,12 +301,6 @@ class Buyer extends User {
         System.out.println("Current Balance: A$ " + this.balance);
     }
 
-    void addBalance(){
-        //checkBalance();
-        // double cash = ModIn.getInteger("How much cash do you want to add to you account: ");
-        // super.addBalance(cash);
-        //checkBalance();
-    }
 
     void addPreviousPurchase(Purchase purchase){
         this.previousPurchases.add(purchase);
@@ -274,20 +310,46 @@ class Buyer extends User {
         return this.cart;
     }
 
-    // ArrayList<Integer> getCartIDs(){
-    //     ArrayList<Integer> cartIDs = new ArrayList<>();
-    //     for (Purchase pur : cart){
-    //         cartIDs.add(pur.getProduct().getProductID());
-    //     }
-    //     return cartIDs;
-    // }
+    int checkoutProduct(ArrayList<User> users){
+        //if balance is over the total cart price
+        if (this.balance >= getTotalPriceCart()){
+            //iterate over all purchases in the customer cart
+            for (Purchase purchase : cart){
+                //need to send appropriate balance to seller
+                for (User seller : users){
+                    //check if this is the seller
+                    if (purchase.getProduct().getSeller().equals(seller)){
+                        //parse the user as a seller
+                        Seller productSeller = (Seller) seller;
+                        //deduct quantity of product based on purchase
+                        for (Product product : productSeller.getSellerCatalogue()){
+                            //make sure to get the product
+                            if (product.equals(purchase.getProduct())){
+                                product.subtractStock(purchase.getQuantity().get());
+                            }
+                        }
+                        //add balance to the product's seller
+                        seller.addBalance(purchase.getTotalCost());
+                    }
+                }
+            }
+            //subtract total cart cost from the buyer's balance
+            this.balance -= getTotalPriceCart();
+            //clear the cart
+            this.cart.clear();
+            //return 1 to confirm the process has been done
+            return 1;
+        } else {
+            //return 0 otherwise
+            return 0;
+        }
+    }
 }
 
 //SELLER--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class Seller extends User {
     //2 array lists with the option to expand for refunds. Unable to do because of time constraints
-    ArrayList<Integer> sellerCatalogue;
-    ArrayList<Product> sellerStorage;
+    ArrayList<Product> sellerCatalogue;
     String contactNumber;
     static final double SELL_FEE = 0.05;
 
@@ -296,30 +358,25 @@ class Seller extends User {
         super(userName, passWord);
         this.contactNumber = contactNumber;
         this.sellerCatalogue = new ArrayList<>();
-        this.sellerStorage = new ArrayList<>();
-    }
-
-    //check products on seller catalogue
-    public int checkProducts(ArrayList<Product> products){
-        this.sellerStorage.clear();
-        int size = getSellerCatalogue().size();
-        if(getSellerCatalogue().size() != 0){
-            System.out.println(this.userName + "'s Inventory:");
-            for (Product p : products){
-                if (getSellerCatalogue().contains(p.getProductID()))
-                    this.sellerStorage.add(p);
-            }
-        }
-        return size;
     }
 
     //add a product to the saved UIDs for a product.
-    public void addProduct(int p){
+    public void addProduct(Product p){
         this.sellerCatalogue.add(p);
     }
 
+    //create a product to add to the seller catalogue
+    public void createProduct(String name, double price, Category category, int stock, Seller seller){
+        Product product = new Product(name, price, category, stock, seller);
+        addProduct(product);
+    }
+
+    public void deleteProduct(Product p){
+        this.sellerCatalogue.remove(p);
+    }
+
     //getter
-    ArrayList<Integer> getSellerCatalogue(){
+    ArrayList<Product> getSellerCatalogue(){
         return this.sellerCatalogue;
     }
 
@@ -332,14 +389,6 @@ class Seller extends User {
     }
 
     @Override
-    void checkBalance(){
-        System.out.println(this.getUserName() + "'s Earnings | Market Fee: " + SELL_FEE*100 + "% per purchase" );
-        System.out.println("Income before deductions: A$ " + this.getBalance());
-        System.out.println("        Total deductions: A$ " + (this.getBalance()*SELL_FEE));
-        System.out.println(" Income after deductions: A$ " + (this.getBalance() - (this.getBalance()*SELL_FEE)));
-    }
-
-    @Override
     public String toString() {
         return "Name: " + this.getUserName() + " | Contact Number: " + this.contactNumber;
     }
@@ -348,7 +397,7 @@ class Seller extends User {
 //PRODUCT--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //product categories
 enum Category{
-    FOOD, BEVERAGE, HOMEWARE, ELECTRONIC, TOYS, FASHION, OFFICE, EVENT, BATHROOOM;
+    ANY, FOOD, BEVERAGE, HOMEWARE, ELECTRONIC, TOYS, FASHION, OFFICE, EVENT, BATHROOOM;
 }
 
 //products
@@ -360,14 +409,14 @@ class Product {
     private SimpleIntegerProperty stock;
     private Category category;
     //Product IDs
-    private static int productId = 0;
+    private static int productId = 1;
     SimpleIntegerProperty id;
 
-    Product(String name, double price, Category category, int stock){
+    Product(String name, double price, Category category, int stock, Seller seller){
         this.itemName = new SimpleStringProperty(name);
         this.price = new SimpleDoubleProperty(price);
         this.stock =  new SimpleIntegerProperty(stock);
-        this.seller = null;
+        this.seller = seller;
         this.category = category;
         //Product IDs
         this.id = new SimpleIntegerProperty(Product.productId);
@@ -389,12 +438,8 @@ class Product {
     }
 
     //menu for editing products
-    public void editProductDetails(){
-        System.out.println("Edit Details");
-        System.out.println("[1] Name");
-        System.out.println("[2] Price");
-        System.out.println("[3] Category");
-        System.out.println("[4] Stock");
+    public void editProductDetails(String Name, String Price, String Stock){
+        this.updateName(getSellerName());
     }
 
     //reduce stock
@@ -487,6 +532,10 @@ class Purchase {
         return quantity;
     }
 
+    public double getTotalCost(){
+        return quantity.get()*product.getPrice().get();
+    }
+
     @Override
     public String toString() {
         return "Quantity: " + this.quantity + " | " + this.product.toString();
@@ -501,3 +550,4 @@ interface ProductManager {
     void editProduct();
     void removeProduct();
 }
+
