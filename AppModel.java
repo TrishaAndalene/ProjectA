@@ -34,15 +34,15 @@ public class AppModel{
         this.userOption = 0;
         this.users = new ArrayList<>();
         //sample data
-            Seller testSeller = new Seller("aaaa", "23", "1237712351");
-            testSeller.addProduct(new Product("Horse", 400, Category.BATHROOOM, 13, testSeller));
-            testSeller.addProduct(new Product("Cow", 230, Category.BEVERAGE, 24, testSeller));
-            testSeller.addProduct(new Product("Chicken", 60, Category.HOMEWARE, 45, testSeller));
-            testSeller.addProduct(new Product("Sheep", 150, Category.TOYS, 8, testSeller));
-            this.users.add(testSeller);
- 
-            Buyer testBuyer = new Buyer("admin", "12345");
-            this.addUser(testBuyer);
+        Seller testSeller = new Seller("aaaa", "23", "1237712351");
+        testSeller.addProduct(new Product("Horse", 400, Category.BATHROOOM, 13, testSeller));
+        testSeller.addProduct(new Product("Cow", 230, Category.BEVERAGE, 24, testSeller));
+        testSeller.addProduct(new Product("Chicken", 60, Category.HOMEWARE, 45, testSeller));
+        testSeller.addProduct(new Product("Sheep", 150, Category.TOYS, 8, testSeller));
+        this.users.add(testSeller);
+
+        Buyer testBuyer = new Buyer("admin", "12345");
+        this.addUser(testBuyer);
         //default account
         this.currentBuyer = testBuyer;
 
@@ -438,8 +438,9 @@ class Product {
     }
 
     //menu for editing products
-    public void editProductDetails(String Name, String Price, String Stock){
-        this.updateName(getSellerName());
+    public void editProductDetails(String name, double price, int stock){
+        this.updateName(name);
+
     }
 
     //reduce stock
