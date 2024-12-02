@@ -1182,14 +1182,53 @@ public class AppView {
             this.createUpdateUsernameWindow();
         });
 
+        Button logOut = new Button();
+        logOut.setGraphic(logOut);
+
+        FileInputStream filepath = new FileInputStream("logOut.png");
+        Image img = new Image(filepath);
+
+        ImageView imgView2 = new ImageView(img);
+        imgView2.setFitHeight(20);
+        imgView2.setFitWidth(20);
+        imgView2.setPreserveRatio(true);
+        logOut.setGraphic(imgView2);
+
+        FileInputStream filepath1 = new FileInputStream("logOut_polar.png");
+        Image newImage = new Image(filepath1);
+
+        this.buttonAnimation(logOut);
+        logOut.setOnMouseEntered(e -> {
+            logOut.setStyle("-fx-background-color: white"); 
+            logOut.setTextFill(Color.BLACK);
+            imgView2.setImage(newImage);
+            logOut.setGraphic(imgView2);
+        });
+        logOut.setOnMouseExited(e -> {
+            logOut.setStyle("-fx-background-color: black"); 
+            logOut.setTextFill(Color.WHITE);
+            imgView2.setImage(img);
+            logOut.setGraphic(imgView2);
+        });
+
+        logOut.setOnAction(e -> {
+            this.primaryStage.setScene(getRegisScene());
+            this.createAccountManagerScreen();
+        });
+
         this.multipleButtonAnimation(addBalance, edit);
 
         // layout
         HBox balanceBtn = new HBox();
         balanceBtn.getChildren().addAll(this.balance, addBalance);
 
+        HBox buttonBox = new HBox();
+        buttonBox.getChildren().addAll(edit, logOut);
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.setSpacing(20);
+
         VBox profileDetails = new VBox();
-        profileDetails.getChildren().addAll(profileLabel, this.name, this.password, balanceBtn, this.accountType, edit);
+        profileDetails.getChildren().addAll(profileLabel, this.name, this.password, balanceBtn, this.accountType, buttonBox);
         profileDetails.setAlignment(Pos.CENTER_LEFT);
         profileDetails.setSpacing(20);
         profileDetails.setTranslateX(30);
@@ -1261,7 +1300,7 @@ public class AppView {
 
     // accesor for all scenes
     public Scene getRegisScene(){
-        return this.scenes.get("menu");
+        return this.scenes.get("register");
     }
 
     public void getSpecificScene(String key){
